@@ -17,7 +17,7 @@ const int HEIGHT = 600;
 bool occupied[HEIGHT][WIDTH] = {};
 
 const int PARTICLE_COUNT = 10000;
-const int FIRE_COUNT = 10000;
+const int FIRE_COUNT = 100000;
 
 
 // Read a text file
@@ -297,6 +297,8 @@ int main()
         glGetUniformLocation(shaderProgram, "position");
     int windowSizeLocation =
         glGetUniformLocation(shaderProgram, "windowSize");
+    int colorLocation =
+        glGetUniformLocation(shaderProgram, "color");
     // --------------------------------------------------
     // 10. Main loop
     // --------------------------------------------------
@@ -348,7 +350,7 @@ int main()
 
             fires[fireCount] = Fire( fireSpawnX, fireSpawnY);
 
-            float upwardVelocity = -(100.0f + rand() % 150);
+            float upwardVelocity = -(400.0f + rand() % 150);
             fires[fireCount].setVelocity(upwardVelocity);
             float sideVelocity = -(30.0f + rand() % 61);
             fires[fireCount].setHorizontalVelocity(sideVelocity);
@@ -454,6 +456,11 @@ int main()
 
         glBindVertexArray(VAO);
 
+        glUniform2f( windowSizeLocation,
+                static_cast<float>(WIDTH),
+                static_cast<float>(HEIGHT));
+        glUniform4f(colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+
         for (int i = 0; i < particleCount; i++)
         {
             glUniform2f(
@@ -466,6 +473,7 @@ int main()
         }
         // Draw fire
 
+        glUniform4f(colorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
         for (int i = 0; i < fireCount; i++)
         {
             if (!fires[i].isDead())
@@ -487,7 +495,6 @@ int main()
                         );
             }
         }
-        glUniform2f( windowSizeLocation, 800.0f, 600.0f);
 
 
         // ---------------------------------------------
