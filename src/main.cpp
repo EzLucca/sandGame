@@ -5,17 +5,20 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cstdlib>
+#include <ctime>
+
+#include "Particle.h"
+#include "Fire.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
 bool occupied[HEIGHT][WIDTH] = {};
 
-struct Particle
-{
-    int x;
-    int y;
-};
+const int PARTICLE_COUNT = 10000;
+const int FIRE_COUNT = 10000;
+
 
 // Read a text file
 std::string readFile(const char* path)
@@ -70,6 +73,7 @@ GLuint compileShader(GLenum type, const std::string& source)
 
 int main()
 {
+    srand(static_cast<unsigned>(time(nullptr)));
     // --------------------------------------------------
     // 1. Initialize GLFW
     // --------------------------------------------------
@@ -93,9 +97,9 @@ int main()
     // --------------------------------------------------
 
     GLFWwindow* window = glfwCreateWindow(
-            800,
-            600,
-            "One Pixel",
+            WIDTH,
+            HEIGHT,
+            "Pixel simulation",
             nullptr,
             nullptr
             );
@@ -258,135 +262,179 @@ int main()
 
     glEnableVertexAttribArray(0);
 
-    const int PARTICLE_COUNT = 100;
+    // --------------------------------------------------
+    // Particle arrays
+    // --------------------------------------------------
     Particle particles[PARTICLE_COUNT];
+
     int particleCount = 0;
+
+    Fire fires[FIRE_COUNT];
+
+    int fireCount = 0;
+
+    // --------------------------------------------------
+    // Timing 
+    // --------------------------------------------------
+
     float spawnTimer = 0.0f;
+
+    float fireSpawnTimer = 0.0f;
+
     float lastTime = glfwGetTime();
+
+    const float gravity = 500.0f;
+    const float fireGravity = -200.0f;
+
 
     float currentTime = glfwGetTime();
     float deltaTime = currentTime - lastTime;
     lastTime = currentTime;
-
     spawnTimer += deltaTime;
-
-    if (spawnTimer >= 1.0f &&
-            particleCount < PARTICLE_COUNT)
-    {
-        particles[particleCount].x = 400;
-        particles[particleCount].y = 0;
-
-        occupied[0][400] = true;
-
-        particleCount++;
-
-        spawnTimer = 0.0f;
-    }
-
-    float velocity = 0.0f;
-
-    float gravity = 500.0f;
 
 
     int positionLocation =
         glGetUniformLocation(shaderProgram, "position");
-    std::cout << "position location: "
-        << positionLocation << '\n';
     int windowSizeLocation =
         glGetUniformLocation(shaderProgram, "windowSize");
-    std::cout << "windowSize location: "
-        << windowSizeLocation << '\n';
     // --------------------------------------------------
     // 10. Main loop
     // --------------------------------------------------
 
     while (!glfwWindowShouldClose(window))
     {
-// ---------------------------------------------
-    // Time
-    // ---------------------------------------------
+        // ---------------------------------------------
+        // Time
+        // ---------------------------------------------
 
-    float currentTime = glfwGetTime();
-    float deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
+        float currentTime = glfwGetTime();
+        float deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
 
-    spawnTimer += deltaTime;
+        // ---------------------------------------------
+        // Spawn a new particle every second
+        // ---------------------------------------------
+        spawnTimer += deltaTime;
 
-
-    // ---------------------------------------------
-    // Spawn a new particle every second
-    // ---------------------------------------------
-
-    if (spawnTimer >= 1.0f &&
-        particleCount < PARTICLE_COUNT)
-    {
-        int spawnX = 400;
-        int spawnY = 0;
-
-        // Only spawn if the location is free
-        if (!occupied[spawnY][spawnX])
+        if (spawnTimer >= 0.2f &&
+                particleCount < PARTICLE_COUNT)
         {
-            particles[particleCount].x = spawnX;
-            particles[particleCount].y = spawnY;
+            int spawnX = 400;
+            int spawnY = 0;
 
-            occupied[spawnY][spawnX] = true;
+            // Only spawn if the location is free
+            if (!occupied[spawnY][spawnX])
+            {
+                particles[particleCount] = Particle(spawnX, spawnY);
 
-            particleCount++;
+                occupied[spawnY][spawnX] = true;
+
+                particleCount++;
+            }
+
+            spawnTimer = 0.0f;
+        }
+        // ---------------------------------------------
+        // Fire spawning
+        // ---------------------------------------------
+
+        fireSpawnTimer += deltaTime;
+
+        if (fireSpawnTimer >= 0.1f &&
+                fireCount < FIRE_COUNT)
+        {
+            int fireSpawnX = 200;
+            int fireSpawnY = 500;
+
+            fires[fireCount] = Fire( fireSpawnX, fireSpawnY);
+
+            float upwardVelocity = -(100.0f + rand() % 150);
+            fires[fireCount].setVelocity(upwardVelocity);
+            float sideVelocity = -(30.0f + rand() % 61);
+            fires[fireCount].setHorizontalVelocity(sideVelocity);
+            fireCount++;
+
+            fireSpawnTimer = 0.0f;
         }
 
-        spawnTimer = 0.0f;
-    }
+        // ---------------------------------------------
+        // Particle movement
+        // ---------------------------------------------
 
-
-    // ---------------------------------------------
-    // Particle movement
-    // ---------------------------------------------
-
-    for (int i = 0; i < particleCount; i++)
-    {
-        int x = particles[i].x;
-        int y = particles[i].y;
-
-        // Try down
-        if (y + 1 < HEIGHT &&
-            !occupied[y + 1][x])
+        for (int i = 0; i < particleCount; i++)
         {
-            occupied[y][x] = false;
+            particles[i].applyGravity(gravity, deltaTime);
+            int x = particles[i].getX();
+            int y = particles[i].getY();
 
-            particles[i].y++;
+            // Try down
+            // Gravity
+            particles[i].applyGravity(gravity, deltaTime);
 
-            occupied[particles[i].y][x] = true;
+            // Movement
+            float movement = particles[i].getVelocity() * deltaTime;
+
+            if (movement >= 1.0f)
+            {
+                int steps = static_cast<int>(movement);
+
+                for (int step = 0; step < steps; step++)
+                {
+                    int x = particles[i].getX();
+                    int y = particles[i].getY();
+
+                    if (y + 1 < HEIGHT &&
+                            !occupied[y + 1][x])
+                    {
+                        occupied[y][x] = false;
+
+                        particles[i].moveDown();
+
+                        occupied[particles[i].getY()][particles[i].getX()] = true;
+                    }
+                    else
+                    {
+                        particles[i].stop();
+                        break;
+                    }
+                }
+            }
+            // Try down-left
+            else if (y + 1 < HEIGHT &&
+                    x - 1 >= 0 &&
+                    !occupied[y + 1][x - 1])
+            {
+                occupied[y][x] = false;
+
+                particles[i].moveLeft();
+
+                occupied[particles[i].getY()][particles[i].getX()] = true;
+            }
+
+            // Try down-right
+            else if (y + 1 < HEIGHT &&
+                    x + 1 < WIDTH &&
+                    !occupied[y + 1][x + 1])
+            {
+                occupied[y][x] = false;
+
+                particles[i].moveRight();
+
+                occupied[particles[i].getY()][particles[i].getX()] = true;
+            }
+        }
+        // ---------------------------------------------
+        // Update fire
+        // ---------------------------------------------
+
+        for (int i = 0; i < fireCount; i++)
+        {
+            fires[i].update(fireGravity, deltaTime);
         }
 
-        // Try down-left
-        else if (y + 1 < HEIGHT &&
-                 x - 1 >= 0 &&
-                 !occupied[y + 1][x - 1])
-        {
-            occupied[y][x] = false;
-
-            particles[i].x--;
-            particles[i].y++;
-
-            occupied[particles[i].y][particles[i].x] = true;
-        }
-
-        // Try down-right
-        else if (y + 1 < HEIGHT &&
-                 x + 1 < WIDTH &&
-                 !occupied[y + 1][x + 1])
-        {
-            occupied[y][x] = false;
-
-            particles[i].x++;
-            particles[i].y++;
-
-            occupied[particles[i].y][particles[i].x] = true;
-        }
-    }
-         // ---------------------------------------------
-         // Clear screen
-         // ---------------------------------------------
+        // ---------------------------------------------
+        // Clear screen
+        // ---------------------------------------------
 
         glClearColor(
                 0.0f,
@@ -406,15 +454,38 @@ int main()
 
         glBindVertexArray(VAO);
 
-        for (int i = 0; i < PARTICLE_COUNT; i++)
+        for (int i = 0; i < particleCount; i++)
         {
             glUniform2f(
                     positionLocation,
-                    static_cast<float>(particles[i].x),
-                    static_cast<float>(particles[i].y)
+                    static_cast<float>(particles[i].getX()),
+                    static_cast<float>(particles[i].getY())
                     );
 
             glDrawArrays(GL_POINTS, 0, 1);
+        }
+        // Draw fire
+
+        for (int i = 0; i < fireCount; i++)
+        {
+            if (!fires[i].isDead())
+            {
+                glUniform2f(
+                        positionLocation,
+                        static_cast<float>(
+                            fires[i].getX()
+                            ),
+                        static_cast<float>(
+                            fires[i].getY()
+                            )
+                        );
+
+                glDrawArrays(
+                        GL_POINTS,
+                        0,
+                        1
+                        );
+            }
         }
         glUniform2f( windowSizeLocation, 800.0f, 600.0f);
 
