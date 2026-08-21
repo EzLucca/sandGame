@@ -1,4 +1,5 @@
 #include "Fire.h"
+#include "Materials.h"
 
 Fire::Fire()
     : Particle()
@@ -8,7 +9,7 @@ Fire::Fire()
 }
 
 Fire::Fire(int startX, int startY)
-    : Particle(startX, startY)
+    : Particle(startX, startY, fireMaterial)
 {
     age = 0.0f;
     lifetime = 1.0f;

@@ -2,6 +2,7 @@
 #define FIRE_H
 
 #include "Particle.h"
+#include "Material.h"
 
 class Fire : public Particle
 {

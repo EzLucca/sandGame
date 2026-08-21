@@ -1,0 +1,55 @@
+#pragma once
+#include "Material.h"
+
+inline const Material fireMaterial{
+    0.0f,
+    1.0f,
+    false,
+    true,
+
+    1.0f,
+    0.2f,
+    0.0f,
+    1.0f,
+
+    true
+};
+inline const Material sandMaterial{
+    0.8f,   // viscosity
+    1.5f,   // density
+    true,   // affectedByGravity
+    true,   // movable
+
+    1.0f,   // r
+    0.8f,   // g
+    0.1f,   // b
+    1.0f,   // a
+    false
+
+};
+
+inline const Material stoneMaterial{
+    0.0f,   // viscosity
+    2.5f,   // density
+    false,  // affectedByGravity
+    false,  // movable
+
+    0.5f,   // r
+    0.5f,   // g
+    0.5f,   // b
+    1.0f,   // a
+    false
+};
+
+inline const Material waterMaterial{
+    0.2f,   // viscosity
+    1.0f,   // density
+    true,   // affectedByGravity
+    true,   // movable
+
+    0.0f,   // r
+    0.4f,   // g
+    1.0f,   // b
+    1.0f,   // a
+    false
+};

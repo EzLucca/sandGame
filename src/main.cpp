@@ -10,15 +10,23 @@
 
 #include "Particle.h"
 #include "Fire.h"
+#include "Materials.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
 bool occupied[HEIGHT][WIDTH] = {};
+const Material* selectedMaterial = &sandMaterial;
 
-const int PARTICLE_COUNT = 10000;
 const int FIRE_COUNT = 100000;
+const int PARTICLE_COUNT = 100000;
 
+Particle particles[PARTICLE_COUNT];
+
+int particleCount = 0;
+
+Fire fires[FIRE_COUNT];
+int fireCount = 0;
 
 // Read a text file
 std::string readFile(const char* path)
@@ -37,6 +45,122 @@ std::string readFile(const char* path)
     return buffer.str();
 }
 
+void placeParticle(int x, int y)
+{
+    if (x < 0 || x >= WIDTH ||
+        y < 0 || y >= HEIGHT)
+    {
+        return;
+    }
+
+    // -----------------------------------------
+    // FIRE
+    // -----------------------------------------
+
+    if (selectedMaterial->isFire)
+    {
+        if (fireCount >= FIRE_COUNT)
+            return;
+
+        fires[fireCount] = Fire(x, y);
+
+        float upwardVelocity =
+            -(400.0f + rand() % 150);
+
+        fires[fireCount].setVelocity(
+            upwardVelocity
+        );
+
+        float sideVelocity =
+            (rand() % 61) - 30.0f;
+
+        fires[fireCount].setHorizontalVelocity(
+            sideVelocity
+        );
+
+        fireCount++;
+
+        return;
+    }
+
+    // -----------------------------------------
+    // NORMAL PARTICLE
+    // -----------------------------------------
+
+    if (occupied[y][x])
+    {
+        return;
+    }
+
+    if (particleCount >= PARTICLE_COUNT)
+    {
+        return;
+    }
+
+    particles[particleCount] =
+        Particle(
+            x,
+            y,
+            *selectedMaterial
+        );
+
+    occupied[y][x] = true;
+
+    particleCount++;
+}
+
+void createStoneContainer()
+{
+    int bottomY = 500;
+    int leftX = 350;
+    int rightX = 450;
+    int topY = 450;
+
+    // Left wall
+    for (int y = topY; y <= bottomY; y++)
+    {
+        if (particleCount >= PARTICLE_COUNT)
+            return;
+
+        particles[particleCount] =
+            Particle(leftX, y, stoneMaterial);
+
+        occupied[y][leftX] = true;
+
+        particleCount++;
+    }
+
+    // Right wall
+    for (int y = topY; y <= bottomY; y++)
+    {
+        if (particleCount >= PARTICLE_COUNT)
+            return;
+
+        particles[particleCount] =
+            Particle(rightX, y, stoneMaterial);
+
+        occupied[y][rightX] = true;
+
+        particleCount++;
+    }
+
+    // Bottom
+    for (int x = leftX; x <= rightX; x++)
+    {
+        if (particleCount >= PARTICLE_COUNT)
+            return;
+
+        if (occupied[bottomY][x])
+            continue;
+
+        particles[particleCount] =
+            Particle(x, bottomY, stoneMaterial);
+
+        occupied[bottomY][x] = true;
+
+        particleCount++;
+    }
+}
 
 // Compile a shader
 GLuint compileShader(GLenum type, const std::string& source)
@@ -265,13 +389,11 @@ int main()
     // --------------------------------------------------
     // Particle arrays
     // --------------------------------------------------
-    Particle particles[PARTICLE_COUNT];
+    // Particle particles[PARTICLE_COUNT];
+    //
+    // int sandCount = 0;
 
-    int particleCount = 0;
 
-    Fire fires[FIRE_COUNT];
-
-    int fireCount = 0;
 
     // --------------------------------------------------
     // Timing 
@@ -299,12 +421,89 @@ int main()
         glGetUniformLocation(shaderProgram, "windowSize");
     int colorLocation =
         glGetUniformLocation(shaderProgram, "color");
+
+    createStoneContainer();
+
     // --------------------------------------------------
     // 10. Main loop
     // --------------------------------------------------
 
     while (!glfwWindowShouldClose(window))
     {
+        // ---------------------------------------------
+        // Material selection
+        // ---------------------------------------------
+
+        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+        {
+            selectedMaterial = &sandMaterial;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+        {
+            selectedMaterial = &stoneMaterial;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+        {
+            selectedMaterial = &fireMaterial;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        {
+            break;
+        }
+
+        // ---------------------------------------------
+        // Mouse
+        // ---------------------------------------------
+
+        double mouseX;
+        double mouseY;
+
+        glfwGetCursorPos(window, &mouseX, &mouseY);
+
+        int windowWidth;
+        int windowHeight;
+
+        glfwGetWindowSize(
+                window,
+                &windowWidth,
+                &windowHeight
+                );
+
+        int gridX =
+            static_cast<int>(
+                    mouseX * WIDTH / windowWidth
+                    );
+
+        int gridY =
+            static_cast<int>(
+                    mouseY * HEIGHT / windowHeight
+                    );
+        const int BRUSH_RADIUS = 4;
+
+        if (glfwGetMouseButton(
+                    window,
+                    GLFW_MOUSE_BUTTON_LEFT
+                    ) == GLFW_PRESS)
+        {
+            for (int dx = -BRUSH_RADIUS; dx <= BRUSH_RADIUS; dx++)
+            {
+                for (int dy = -BRUSH_RADIUS; dy <= BRUSH_RADIUS; dy++)
+                {
+                    if (dx * dx + dy * dy <=
+                            BRUSH_RADIUS * BRUSH_RADIUS)
+                    {
+                        placeParticle(
+                                gridX + dx,
+                                gridY + dy
+                                );
+                    }
+                }
+            }
+        }
+
         // ---------------------------------------------
         // Time
         // ---------------------------------------------
@@ -324,10 +523,14 @@ int main()
             int spawnX = 400;
             int spawnY = 0;
 
-            // Only spawn if the location is free
             if (!occupied[spawnY][spawnX])
             {
-                particles[particleCount] = Particle(spawnX, spawnY);
+                particles[particleCount] =
+                    Particle(
+                            spawnX,
+                            spawnY,
+                            sandMaterial
+                            );
 
                 occupied[spawnY][spawnX] = true;
 
@@ -336,6 +539,7 @@ int main()
 
             spawnTimer = 0.0f;
         }
+
         // ---------------------------------------------
         // Fire spawning
         // ---------------------------------------------
@@ -365,13 +569,19 @@ int main()
 
         for (int i = 0; i < particleCount; i++)
         {
-            particles[i].applyGravity(gravity, deltaTime);
+            if (!particles[i].isMovable())
+            {
+                continue;
+            }
             int x = particles[i].getX();
             int y = particles[i].getY();
 
             // Try down
             // Gravity
-            particles[i].applyGravity(gravity, deltaTime);
+            if (particles[i].isAffectedByGravity())
+            {
+                particles[i].applyGravity(gravity, deltaTime);
+            }
 
             // Movement
             float movement = particles[i].getVelocity() * deltaTime;
@@ -382,8 +592,12 @@ int main()
 
                 for (int step = 0; step < steps; step++)
                 {
-                    int x = particles[i].getX();
-                    int y = particles[i].getY();
+                    x = particles[i].getX();
+                    y = particles[i].getY();
+
+                    // -----------------------------------------
+                    // Try down
+                    // -----------------------------------------
 
                     if (y + 1 < HEIGHT &&
                             !occupied[y + 1][x])
@@ -392,39 +606,67 @@ int main()
 
                         particles[i].moveDown();
 
-                        occupied[particles[i].getY()][particles[i].getX()] = true;
+                        occupied[
+                            particles[i].getY()
+                        ][
+                        particles[i].getX()
+                        ] = true;
+
+                        continue;
                     }
-                    else
+
+                    // -----------------------------------------
+                    // Try down-left
+                    // -----------------------------------------
+
+                    if (y + 1 < HEIGHT &&
+                            x - 1 >= 0 &&
+                            !occupied[y + 1][x - 1])
                     {
-                        particles[i].stop();
-                        break;
+                        occupied[y][x] = false;
+
+                        particles[i].moveDownLeft();
+
+                        occupied[
+                            particles[i].getY()
+                        ][
+                        particles[i].getX()
+                        ] = true;
+
+                        continue;
                     }
+
+                    // -----------------------------------------
+                    // Try down-right
+                    // -----------------------------------------
+
+                    if (y + 1 < HEIGHT &&
+                            x + 1 < WIDTH &&
+                            !occupied[y + 1][x + 1])
+                    {
+                        occupied[y][x] = false;
+
+                        particles[i].moveDownRight();
+
+                        occupied[
+                            particles[i].getY()
+                        ][
+                        particles[i].getX()
+                        ] = true;
+
+                        continue;
+                    }
+
+                    // -----------------------------------------
+                    // Completely blocked
+                    // -----------------------------------------
+
+                    particles[i].stop();
+                    break;
                 }
-            }
-            // Try down-left
-            else if (y + 1 < HEIGHT &&
-                    x - 1 >= 0 &&
-                    !occupied[y + 1][x - 1])
-            {
-                occupied[y][x] = false;
-
-                particles[i].moveLeft();
-
-                occupied[particles[i].getY()][particles[i].getX()] = true;
-            }
-
-            // Try down-right
-            else if (y + 1 < HEIGHT &&
-                    x + 1 < WIDTH &&
-                    !occupied[y + 1][x + 1])
-            {
-                occupied[y][x] = false;
-
-                particles[i].moveRight();
-
-                occupied[particles[i].getY()][particles[i].getX()] = true;
-            }
+            } 
         }
+
         // ---------------------------------------------
         // Update fire
         // ---------------------------------------------
@@ -459,18 +701,36 @@ int main()
         glUniform2f( windowSizeLocation,
                 static_cast<float>(WIDTH),
                 static_cast<float>(HEIGHT));
-        glUniform4f(colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+        // ---------------------------------------------
+        // Draw stone
+        // ---------------------------------------------
 
         for (int i = 0; i < particleCount; i++)
         {
+            const Material& material =
+                particles[i].getMaterial();
+
+            glUniform4f(
+                    colorLocation,
+                    material.r,
+                    material.g,
+                    material.b,
+                    material.a
+                    );
+
             glUniform2f(
                     positionLocation,
-                    static_cast<float>(particles[i].getX()),
-                    static_cast<float>(particles[i].getY())
+                    static_cast<float>(
+                        particles[i].getX()
+                        ),
+                    static_cast<float>(
+                        particles[i].getY()
+                        )
                     );
 
             glDrawArrays(GL_POINTS, 0, 1);
         }
+
         // Draw fire
 
         glUniform4f(colorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
