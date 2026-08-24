@@ -4,6 +4,7 @@
 inline const Material fireMaterial{
     0.0f,
     1.0f,
+    0.0f,
     false,
     true,
 
@@ -17,6 +18,7 @@ inline const Material fireMaterial{
 inline const Material sandMaterial{
     0.8f,   // viscosity
     1.5f,   // density
+    0.0f,   // spread
     true,   // affectedByGravity
     true,   // movable
 
@@ -31,6 +33,7 @@ inline const Material sandMaterial{
 inline const Material stoneMaterial{
     0.0f,   // viscosity
     2.5f,   // density
+    0.0f,   // spread
     false,  // affectedByGravity
     false,  // movable
 
@@ -44,6 +47,7 @@ inline const Material stoneMaterial{
 inline const Material waterMaterial{
     0.2f,   // viscosity
     1.0f,   // density
+    1.0f,   // spread
     true,   // affectedByGravity
     true,   // movable
 

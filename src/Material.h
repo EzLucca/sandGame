@@ -4,6 +4,7 @@ struct Material
 {
     float viscosity;
     float density;
+    float spread;
     bool affectedByGravity;
     bool movable;
 

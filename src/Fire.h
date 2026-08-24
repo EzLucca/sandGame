@@ -1,5 +1,4 @@
-#ifndef FIRE_H
-#define FIRE_H
+#pragma once
 
 #include "Particle.h"
 #include "Material.h"
@@ -9,6 +8,7 @@ class Fire : public Particle
     private:
         float age;
         float lifetime;
+        float maxLifetime;
         float horizontalVelocity;
 
     public:
@@ -19,6 +19,6 @@ class Fire : public Particle
         void setVelocity(float value);
         void setHorizontalVelocity(float value);
         bool isDead();
+        float getHorizontalVelocity() const;
+        float getVelocity() const;
 };
-
-#endif

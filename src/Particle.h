@@ -1,5 +1,4 @@
-#ifndef PARTICLE_H
-#define PARTICLE_H
+#pragma once
 
 #include "Material.h"
 
@@ -24,13 +23,12 @@ class Particle
         void moveDownLeft();
         void moveDownRight();
         void stop();
+        void setPosition(int newX, int newY);
 
         int getX();
         int getY();
         float getVelocity();
         bool isAffectedByGravity() const;
         bool isMovable() const;
-
+        float getSpread() const;
 };
-
-#endif

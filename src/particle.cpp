@@ -1,4 +1,5 @@
 #include "Particle.h"
+#include <cstdlib>
 
 Particle::Particle()
 {
@@ -8,17 +9,19 @@ Particle::Particle()
 }
 
 Particle::Particle( int x, int y,
-    const Material& material
-)
+        const Material& material
+        )
     : x(x),
-      y(y),
-      velocity(0.0f),
-      material(material)
+    y(y),
+    velocity(0.0f),
+    material(material)
 { }
 
 void Particle::applyGravity(float gravity, float deltaTime)
 {
     velocity += gravity * deltaTime;
+    float drag = 1.0f / (1.0f + material.viscosity * deltaTime);
+    velocity *= drag;
 }
 
 int Particle::getX()
@@ -43,12 +46,12 @@ void Particle::moveDown()
 
 void Particle::moveLeft()
 {
-    x--;
+    x-= (1.0f - material.viscosity);
 }
 
 void Particle::moveRight()
 {
-    x++;
+    x+= (1.0f + material.viscosity);
 }
 
 void Particle::moveDownLeft()
@@ -81,4 +84,15 @@ bool Particle::isMovable() const
 const Material& Particle::getMaterial() const
 {
     return material;
+}
+
+float Particle::getSpread() const
+{
+    return material.spread;
+}
+
+void Particle::setPosition(int newX, int newY)
+{
+    x = newX;
+    y = newY;
 }
