@@ -22,6 +22,9 @@ class Particle
         void moveRight();
         void moveDownLeft();
         void moveDownRight();
+        void moveUp();
+        void moveUpLeft();
+        void moveUpRight();
         void stop();
         void setPosition(int newX, int newY);
 
@@ -31,4 +34,8 @@ class Particle
         bool isAffectedByGravity() const;
         bool isMovable() const;
         float getSpread() const;
+
+        void move(int dx, int dy);
+        void moveHorizontal(int direction);
+        void moveVertical(int direction);
 };

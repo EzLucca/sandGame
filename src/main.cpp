@@ -33,7 +33,7 @@ void clearOccupied()
 const Material* selectedMaterial = &sandMaterial;
 
 const int FIRE_COUNT = 100000;
-const int PARTICLE_COUNT = 100000;
+const int PARTICLE_COUNT = 1000000;
 
 Particle particles[PARTICLE_COUNT];
 
@@ -423,7 +423,7 @@ int main()
 
     float lastTime = glfwGetTime();
 
-    const float gravity = 500.0f;
+    // const float gravity = 500.0f;
     const float fireGravity = -200.0f;
 
 
@@ -468,6 +468,10 @@ int main()
         if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
         {
             selectedMaterial = &waterMaterial;
+        }
+        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
+        {
+            selectedMaterial = &smokeMaterial;
         }
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
@@ -579,29 +583,6 @@ int main()
         }
 
         // ---------------------------------------------
-        // Fire spawning
-        // ---------------------------------------------
-
-        fireSpawnTimer += deltaTime;
-
-        if (fireSpawnTimer >= 0.1f &&
-                fireCount < FIRE_COUNT)
-        {
-            int fireSpawnX = 200;
-            int fireSpawnY = 500;
-
-            fires[fireCount] = Fire( fireSpawnX, fireSpawnY);
-
-            float upwardVelocity = -(400.0f + rand() % 150);
-            fires[fireCount].setVelocity(upwardVelocity);
-            float sideVelocity = -(30.0f + rand() % 61);
-            fires[fireCount].setHorizontalVelocity(sideVelocity);
-            fireCount++;
-
-            fireSpawnTimer = 0.0f;
-        }
-
-        // ---------------------------------------------
         // Particle movement
         // ---------------------------------------------
 
@@ -614,230 +595,227 @@ int main()
             int x = particles[i].getX();
             int y = particles[i].getY();
 
-            // ravity
+            // gravity
             if (particles[i].isAffectedByGravity())
             {
-                particles[i].applyGravity(gravity, deltaTime);
+                particles[i].applyGravity(particles[i].getMaterial().gravityValue, deltaTime);
             }
 
             // Movement
             float movement = particles[i].getVelocity() * deltaTime;
 
-            if (movement >= 1.0f)
+            int steps = static_cast<int>(movement);
+
+            for (int step = 0; step < steps; step++)
             {
-                int steps = static_cast<int>(movement);
+                x = particles[i].getX();
+                y = particles[i].getY();
 
-                for (int step = 0; step < steps; step++)
+                bool preferLeft = (step % 2 == 0);
+
+                // -----------------------------------------
+                // vertical movement
+                // -----------------------------------------
+
+                if (y + 1 < HEIGHT)
                 {
-                    x = particles[i].getX();
-                    y = particles[i].getY();
+                    int otherIndex = occupied[y + 1][x];
 
-                    bool preferLeft = (step % 2 == 0);
-
-                    // -----------------------------------------
-                    // Try down
-                    // -----------------------------------------
-
-                    if (y + 1 < HEIGHT)
+                    if (canDisplace(i, otherIndex))
                     {
-                        int otherIndex = occupied[y + 1][x];
-
-                        if (canDisplace(i, otherIndex))
+                        // Empty
+                        if (otherIndex == -1)
                         {
-                            // Empty
-                            if (otherIndex == -1)
-                            {
-                                occupied[y][x] = -1;
+                            occupied[y][x] = -1;
 
-                                particles[i].moveDown();
+                            particles[i].moveDown();
 
-                                occupied[
-                                    particles[i].getY()
-                                ][
-                                particles[i].getX()
-                                ] = i;
-
-                                continue;
-                            }
-
-                            // Swap with less dense particle
-                            particles[otherIndex].setPosition(x, y);
-
-                            particles[i].setPosition(x, y + 1);
-
-                            occupied[y][x] = otherIndex;
-                            occupied[y + 1][x] = i;
+                            occupied[
+                                particles[i].getY()
+                            ][
+                            particles[i].getX()
+                            ] = i;
 
                             continue;
                         }
+
+                        // Swap with less dense particle
+                        particles[otherIndex].setPosition(x, y);
+
+                        particles[i].setPosition(x, y + 1);
+
+                        occupied[y][x] = otherIndex;
+                        occupied[y + 1][x] = i;
+
+                        continue;
                     }
+                }
 
-                    // -----------------------------------------
-                    // Try down-left
-                    // -----------------------------------------
+                // -----------------------------------------
+                // Try down-left
+                // -----------------------------------------
 
-                    if (y + 1 < HEIGHT && x - 1 >= 0)
+                if (y + 1 < HEIGHT && x - 1 >= 0)
+                {
+                    int targetX = x - 1;
+                    int targetY = y + 1;
+
+                    int otherIndex = occupied[targetY][targetX];
+
+                    if (canDisplace(i, otherIndex))
                     {
-                        int targetX = x - 1;
-                        int targetY = y + 1;
-
-                        int otherIndex = occupied[targetY][targetX];
-
-                        if (canDisplace(i, otherIndex))
+                        if (otherIndex == -1)
                         {
-                            if (otherIndex == -1)
-                            {
-                                occupied[y][x] = -1;
+                            occupied[y][x] = -1;
 
-                                particles[i].moveDownLeft();
+                            particles[i].moveDownLeft();
 
-                                occupied[
-                                    particles[i].getY()
-                                ][
-                                particles[i].getX()
-                                ] = i;
-
-                                continue;
-                            }
-
-                            particles[otherIndex].setPosition(x, y);
-
-                            particles[i].setPosition(targetX, targetY);
-
-                            occupied[y][x] = otherIndex;
-                            occupied[targetY][targetX] = i;
+                            occupied[
+                                particles[i].getY()
+                            ][
+                            particles[i].getX()
+                            ] = i;
 
                             continue;
                         }
+
+                        particles[otherIndex].setPosition(x, y);
+
+                        particles[i].setPosition(targetX, targetY);
+
+                        occupied[y][x] = otherIndex;
+                        occupied[targetY][targetX] = i;
+
+                        continue;
                     }
+                }
 
-                    // -----------------------------------------
-                    // Try down-right
-                    // -----------------------------------------
+                // -----------------------------------------
+                // Try down-right
+                // -----------------------------------------
 
-                    if (y + 1 < HEIGHT && x + 1 < WIDTH)
+                if (y + 1 < HEIGHT && x + 1 < WIDTH)
+                {
+                    int targetX = x + 1;
+                    int targetY = y + 1;
+
+                    int otherIndex = occupied[targetY][targetX];
+
+                    if (canDisplace(i, otherIndex))
                     {
-                        int targetX = x + 1;
-                        int targetY = y + 1;
-
-                        int otherIndex = occupied[targetY][targetX];
-
-                        if (canDisplace(i, otherIndex))
+                        if (otherIndex == -1)
                         {
-                            if (otherIndex == -1)
-                            {
-                                occupied[y][x] = -1;
+                            occupied[y][x] = -1;
 
-                                particles[i].moveDownRight();
+                            particles[i].moveDownRight();
 
-                                occupied[
-                                    particles[i].getY()
-                                ][
-                                particles[i].getX()
-                                ] = i;
-
-                                continue;
-                            }
-
-                            particles[otherIndex].setPosition(x, y);
-
-                            particles[i].setPosition(targetX, targetY);
-
-                            occupied[y][x] = otherIndex;
-                            occupied[targetY][targetX] = i;
+                            occupied[
+                                particles[i].getY()
+                            ][
+                            particles[i].getX()
+                            ] = i;
 
                             continue;
                         }
+
+                        particles[otherIndex].setPosition(x, y);
+
+                        particles[i].setPosition(targetX, targetY);
+
+                        occupied[y][x] = otherIndex;
+                        occupied[targetY][targetX] = i;
+
+                        continue;
                     }
+                }
 
-                    /// -----------------------------------------
-                    // Horizontal spreading
-                    // -----------------------------------------
+                /// -----------------------------------------
+                // Horizontal spreading
+                // -----------------------------------------
 
-                    float spread = particles[i].getSpread();
+                float spread = particles[i].getSpread();
 
-                    if (spread > 0.0f)
+                if (spread > 0.0f)
+                {
+                    int maxSpread = static_cast<int>(spread * 10.0f);
+
+                    if (maxSpread < 1)
+                        maxSpread = 1;
+
+                    for (int distance = 0; distance < maxSpread; distance++)
                     {
-                        int maxSpread = static_cast<int>(spread * 10.0f);
+                        x = particles[i].getX();
+                        y = particles[i].getY();
 
-                        if (maxSpread < 1)
-                            maxSpread = 1;
+                        bool leftFree =
+                            x - 1 >= 0 &&
+                            occupied[y][x - 1] == -1;
 
-                        for (int distance = 0; distance < maxSpread; distance++)
+                        bool rightFree =
+                            x + 1 < WIDTH &&
+                            occupied[y][x + 1] == -1;
+
+                        // Nothing to spread into
+                        if (!leftFree && !rightFree)
+                            break;
+
+                        // Both directions available
+                        if (leftFree && rightFree)
                         {
-                            x = particles[i].getX();
-                            y = particles[i].getY();
-
-                            bool leftFree =
-                                x - 1 >= 0 &&
-                                occupied[y][x - 1] == -1;
-
-                            bool rightFree =
-                                x + 1 < WIDTH &&
-                                occupied[y][x + 1] == -1;
-
-                            // Nothing to spread into
-                            if (!leftFree && !rightFree)
-                                break;
-
-                            // Both directions available
-                            if (leftFree && rightFree)
-                            {
-                                if (preferLeft)
-                                {
-                                    occupied[y][x] = -1;
-
-                                    particles[i].moveLeft();
-
-                                    occupied[y][x - 1] = i;
-                                }
-                                else
-                                {
-                                    occupied[y][x] = -1;
-
-                                    particles[i].moveRight();
-
-                                    occupied[y][x + 1] = i;
-                                }
-
-                                continue;
-                            }
-
-                            // Only left available
-                            if (leftFree)
+                            if (preferLeft)
                             {
                                 occupied[y][x] = -1;
 
                                 particles[i].moveLeft();
 
                                 occupied[y][x - 1] = i;
-
-                                continue;
                             }
-
-                            // Only right available
-                            if (rightFree)
+                            else
                             {
                                 occupied[y][x] = -1;
 
                                 particles[i].moveRight();
 
                                 occupied[y][x + 1] = i;
-
-                                continue;
                             }
+
+                            continue;
                         }
 
-                        continue;
-                    }
-                    // -----------------------------------------
-                    // Completely blocked
-                    // -----------------------------------------
+                        // Only left available
+                        if (leftFree)
+                        {
+                            occupied[y][x] = -1;
 
-                    particles[i].stop();
-                    break;
+                            particles[i].moveLeft();
+
+                            occupied[y][x - 1] = i;
+
+                            continue;
+                        }
+
+                        // Only right available
+                        if (rightFree)
+                        {
+                            occupied[y][x] = -1;
+
+                            particles[i].moveRight();
+
+                            occupied[y][x + 1] = i;
+
+                            continue;
+                        }
+                    }
+
+                    continue;
                 }
-            } 
+                // -----------------------------------------
+                // Completely blocked
+                // -----------------------------------------
+
+                particles[i].stop();
+                break;
+            }
         }
 
         // ---------------------------------------------

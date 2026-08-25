@@ -96,3 +96,35 @@ void Particle::setPosition(int newX, int newY)
     x = newX;
     y = newY;
 }
+void Particle::moveUp()
+{
+    y--;
+}
+
+void Particle::moveUpLeft()
+{
+    y--;
+    x--;
+}
+
+void Particle::moveUpRight()
+{
+    y--;
+    x++;
+}
+
+void Particle::move(int dx, int dy)
+{
+    x += dx;
+    y += dy;
+}
+
+void Particle::moveHorizontal(int direction)
+{
+    x += direction;
+}
+
+void Particle::moveVertical(int direction)
+{
+    y += direction;
+}
