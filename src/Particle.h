@@ -39,3 +39,4 @@ class Particle
         void moveHorizontal(int direction);
         void moveVertical(int direction);
 };
+
