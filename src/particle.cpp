@@ -14,7 +14,9 @@ Particle::Particle( int x, int y,
     : x(x),
     y(y),
     velocity(0.0f),
-    material(material)
+    material(material),
+    lifetime(material.lifetime)
+
 { }
 
 void Particle::applyGravity(float gravity, float deltaTime)
@@ -24,12 +26,12 @@ void Particle::applyGravity(float gravity, float deltaTime)
     velocity *= drag;
 }
 
-int Particle::getX()
+int Particle::getX() const
 {
     return x;
 }
 
-int Particle::getY()
+int Particle::getY() const
 {
     return y;
 }
@@ -127,4 +129,53 @@ void Particle::moveHorizontal(int direction)
 void Particle::moveVertical(int direction)
 {
     y += direction;
+}
+void Particle::setVelocity(float value)
+{
+    velocity = value;
+}
+
+float Particle::getVelocity() const
+{
+    return velocity;
+}
+
+void Particle::setHorizontalVelocity(float value)
+{
+    horizontalVelocity = value;
+}
+
+float Particle::getHorizontalVelocity() const
+{
+    return horizontalVelocity;
+}
+void Particle::setLifetime(float value)
+{
+    lifetime = value;
+}
+
+float Particle::getLifetime() const
+{
+    return lifetime;
+}
+
+bool Particle::hasLifetime() const
+{
+    return lifetime >= 0.0f;
+}
+
+void Particle::updateLifetime(float deltaTime)
+{
+    if (lifetime < 0.0f)
+        return;
+
+    lifetime -= deltaTime;
+
+    if (lifetime < 0.0f)
+        lifetime = 0.0f;
+}
+
+bool Particle::isDead() const
+{
+    return lifetime >= 0.0f && lifetime <= 0.0f;
 }

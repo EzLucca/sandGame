@@ -8,6 +8,8 @@ class Particle
         int x;
         int y;
         float velocity;
+        float horizontalVelocity;
+        float lifetime = -1.0f;
         Material material;
 
     public:
@@ -28,8 +30,8 @@ class Particle
         void stop();
         void setPosition(int newX, int newY);
 
-        int getX();
-        int getY();
+        int getX() const;
+        int getY() const;
         float getVelocity();
         bool isAffectedByGravity() const;
         bool isMovable() const;
@@ -38,5 +40,14 @@ class Particle
         void move(int dx, int dy);
         void moveHorizontal(int direction);
         void moveVertical(int direction);
+        void setVelocity(float value);
+        float getVelocity() const;
+        void setHorizontalVelocity(float value);
+        float getHorizontalVelocity() const;
+        void setLifetime(float value);
+        float getLifetime() const;
+        bool hasLifetime() const;
+        void updateLifetime(float deltaTime);
+        bool isDead() const;
 };
 

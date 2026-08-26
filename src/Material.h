@@ -9,6 +9,7 @@ struct Material
     int dir;
     float gravityValue;
     bool movable;
+    float lifetime;
 
     float r;
     float g;

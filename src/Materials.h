@@ -10,6 +10,7 @@ inline const Material fireMaterial{
     -200.0f,
     true,
 
+    1.5f,       // lifetime
     1.0f,
     0.2f,
     0.0f,
@@ -17,6 +18,7 @@ inline const Material fireMaterial{
 
     true
 };
+
 inline const Material sandMaterial{
     0.8f,   // viscosity
     1.5f,   // density
@@ -26,6 +28,7 @@ inline const Material sandMaterial{
     500.0f, // gravityValue
     true,   // movable
 
+    -1.0f,  // lifetime
     1.0f,   // r
     0.8f,   // g
     0.1f,   // b
@@ -43,6 +46,7 @@ inline const Material stoneMaterial{
     0.0f,   // gravityValue
     false,  // movable
 
+    -1.0f,  // lifetime
     0.5f,   // r
     0.5f,   // g
     0.5f,   // b
@@ -59,6 +63,7 @@ inline const Material waterMaterial{
     500.0f, // gravityValue
     true,   // movable
 
+    -1.0f,  // lifetime
     0.0f,   // r
     0.4f,   // g
     1.0f,   // b
@@ -69,12 +74,13 @@ inline const Material waterMaterial{
 inline const Material smokeMaterial{
     0.8f,   // viscosity
     0.1f,   // density
-    1.5f,   // spread
+    2.5f,   // spread
     true,   // affectedByGravity
     -1,      // vertical diretion
     -200.0f, // gravityValue
     true,   // movable
 
+    -1.0f,       // lifetime
     0.5f,   // r
     0.5f,   // g
     0.5f,   // b
