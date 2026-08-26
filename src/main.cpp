@@ -367,17 +367,10 @@ void updateParticle(
 
             if (otherIndex != -1)
             {
-                particles[otherIndex].setPosition(
-                        x,
-                        y
-                        );
+                particles[otherIndex].setPosition( x, y);
 
                 // Draw displaced particle
-                setPixel(
-                        x,
-                        y,
-                        particles[otherIndex].getMaterial()
-                        );
+                setPixel( x, y, particles[otherIndex].getMaterial());
             }
             else
             {
@@ -386,17 +379,10 @@ void updateParticle(
             }
 
             // Move our particle
-            p.setPosition(
-                    x,
-                    nextY
-                    );
+            p.setPosition( x, nextY);
 
             // Draw our particle at its new position
-            setPixel(
-                    x,
-                    nextY,
-                    p.getMaterial()
-                    );
+            setPixel( x, nextY, p.getMaterial());
 
             occupied[nextY][x] = index;
 
@@ -423,26 +409,17 @@ void updateParticle(
                 int diagonalIndex =
                     occupied[nextY][nextX];
 
-                if (canDisplace(
-                            index,
-                            diagonalIndex))
+                if (canDisplace( index, diagonalIndex))
                 {
                     // Move the displaced particle
                     // into our old position.
-                    occupied[y][x] =
-                        diagonalIndex;
+                    occupied[y][x] = diagonalIndex;
 
                     if (diagonalIndex != -1)
                     {
-                        particles[diagonalIndex]
-                            .setPosition(
-                                    x,
-                                    y
-                                    );
+                        particles[diagonalIndex] .setPosition( x, y);
 
-                        setPixel(
-                                x,
-                                y,
+                        setPixel( x, y,
                                 particles[diagonalIndex]
                                 .getMaterial()
                                 );
@@ -453,19 +430,11 @@ void updateParticle(
                     }
 
                     // Move our particle diagonally
-                    p.setPosition(
-                            nextX,
-                            nextY
-                            );
+                    p.setPosition( nextX, nextY);
 
-                    setPixel(
-                            nextX,
-                            nextY,
-                            p.getMaterial()
-                            );
+                    setPixel( nextX, nextY, p.getMaterial());
 
-                    occupied[nextY][nextX] =
-                        index;
+                    occupied[nextY][nextX] = index;
 
                     moved = true;
                     break;
@@ -504,88 +473,46 @@ void updateParticle(
         if (maxSpread < 1)
             maxSpread = 1;
 
-        for (int distance = 0;
-                distance < maxSpread;
+        for (int distance = 1;
+                distance <= maxSpread;
                 distance++)
         {
-            int x = p.getX();
+            int leftX = p.getX() - distance;
+            int rightX = p.getX() + distance;
+
             int y = p.getY();
 
-            int side =
-                (fastRandom() & 1)
-                ? -1
-                : 1;
-
-            int nextX =
-                x + side;
-
-            // ---------------------------------
-            // Try chosen direction
-            // ---------------------------------
-
-            if (nextX >= 0 &&
-                    nextX < WIDTH &&
-                    occupied[y][nextX] == -1)
+            if (leftX >= 0 &&
+                    occupied[y][leftX] == -1)
             {
-                // Clear old pixel
-                clearPixel(x, y);
+                clearPixel(p.getX(), y);
 
-                occupied[y][x] = -1;
+                occupied[y][p.getX()] = -1;
 
-                // Move particle
-                p.setPosition(
-                        nextX,
-                        y
-                        );
+                p.setPosition(leftX, y);
 
-                // Draw new pixel
-                setPixel(
-                        nextX,
-                        y,
-                        p.getMaterial()
-                        );
+                occupied[y][leftX] = index;
 
-                occupied[y][nextX] = index;
+                setPixel( leftX, y, p.getMaterial());
 
-                continue;
+                break;
             }
 
-            // ---------------------------------
-            // Try opposite direction
-            // ---------------------------------
-
-            nextX =
-                x - side;
-
-            if (nextX >= 0 &&
-                    nextX < WIDTH &&
-                    occupied[y][nextX] == -1)
+            if (rightX < WIDTH &&
+                    occupied[y][rightX] == -1)
             {
-                // Clear old pixel
-                clearPixel(x, y);
+                clearPixel(p.getX(), y);
 
-                occupied[y][x] = -1;
+                occupied[y][p.getX()] = -1;
 
-                // Move particle
-                p.setPosition(
-                        nextX,
-                        y
-                        );
+                p.setPosition(rightX, y);
 
-                // Draw new pixel
-                setPixel(
-                        nextX,
-                        y,
-                        p.getMaterial()
-                        );
+                occupied[y][rightX] = index;
 
-                occupied[y][nextX] = index;
+                setPixel( rightX, y, p.getMaterial());
 
-                continue;
+                break;
             }
-
-            // Neither direction worked
-            break;
         }
     }
 
