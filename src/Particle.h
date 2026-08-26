@@ -11,6 +11,7 @@ class Particle
         float horizontalVelocity;
         float lifetime = -1.0f;
         Material material;
+        bool moved = false;
 
     public:
         Particle();
@@ -49,5 +50,8 @@ class Particle
         bool hasLifetime() const;
         void updateLifetime(float deltaTime);
         bool isDead() const;
+
+        void setMoved(bool value);
+        bool hasMoved() const;
 };
 

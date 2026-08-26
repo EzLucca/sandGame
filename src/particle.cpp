@@ -179,3 +179,12 @@ bool Particle::isDead() const
 {
     return lifetime >= 0.0f && lifetime <= 0.0f;
 }
+
+void Particle::setMoved(bool value)
+{
+    moved = value;
+}
+bool Particle::hasMoved() const
+{
+    return moved;
+}

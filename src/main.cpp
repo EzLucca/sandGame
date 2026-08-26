@@ -343,6 +343,7 @@ void updateParticle( Particle& p, int index, float deltaTime)
 
             // Move our particle
             p.setPosition( x, nextY);
+            p.setMoved(true);
 
             // Draw our particle at its new position
             setPixel( x, nextY, p.getMaterial());
@@ -387,6 +388,7 @@ void updateParticle( Particle& p, int index, float deltaTime)
 
                     // Move our particle diagonally
                     p.setPosition( nextX, nextY);
+                    p.setMoved(true);
 
                     setPixel( nextX, nextY, p.getMaterial());
 
@@ -439,6 +441,7 @@ void updateParticle( Particle& p, int index, float deltaTime)
                 occupied[y][p.getX()] = -1;
 
                 p.setPosition(leftX, y);
+                p.setMoved(true);
 
                 occupied[y][leftX] = index;
 
@@ -454,6 +457,7 @@ void updateParticle( Particle& p, int index, float deltaTime)
                 occupied[y][p.getX()] = -1;
 
                 p.setPosition(rightX, y);
+                p.setMoved(true);
 
                 occupied[y][rightX] = index;
 
@@ -741,6 +745,8 @@ int main()
 
         for (int i = 0; i < particleCount; i++)
         {
+            particles[i].setMoved(false);
+
             Particle& p = particles[i];
 
             // Lifetime
