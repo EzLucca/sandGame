@@ -133,19 +133,12 @@ void placeParticle(int x, int y)
     if (occupied[y][x] != -1)
         return;
 
-    particles[particleCount] =
-        Particle(
-                x,
-                y,
-                *selectedMaterial
-                );
+    particles[particleCount] = Particle( x, y, *selectedMaterial);
 
     // Fire
     if (selectedMaterial->isFire)
     {
-        particles[particleCount].setVelocity(
-                -(400.0f + fastRandom() % 150)
-                );
+        particles[particleCount].setVelocity( -(400.0f + fastRandom() % 150));
 
         particles[particleCount].setHorizontalVelocity(
                 static_cast<float>(
@@ -153,20 +146,14 @@ void placeParticle(int x, int y)
                     )
                 );
 
-        particles[particleCount].setLifetime(
-                1.0f + (fastRandom() % 100) / 100.0f
-                );
+        particles[particleCount].setLifetime( 1.0f + (fastRandom() % 100) / 100.0f);
     }
 
     occupied[y][x] = particleCount;
 
     // NEW:
     // Draw the particle directly into the pixel buffer.
-    setPixel(
-            x,
-            y,
-            *selectedMaterial
-            );
+    setPixel( x, y, *selectedMaterial);
 
     particleCount++;
 }
@@ -189,12 +176,7 @@ GLuint compileShader(GLenum type, const std::string& source)
     {
         char infoLog[512];
 
-        glGetShaderInfoLog(
-                shader,
-                512,
-                nullptr,
-                infoLog
-                );
+        glGetShaderInfoLog( shader, 512, nullptr, infoLog);
 
         std::cerr << "Shader compilation failed:\n"
             << infoLog << '\n';
@@ -244,21 +226,13 @@ void removeParticle(int index)
         occupied[newY][newX] = index;
 
         // Make sure the moved particle is rendered
-        setPixel(
-                newX,
-                newY,
-                particles[index].getMaterial()
-                );
+        setPixel( newX, newY, particles[index].getMaterial());
     }
 
     particleCount--;
 }
 
-void useBrush(
-        int centerX,
-        int centerY,
-        int radius,
-        bool erase)
+void useBrush( int centerX, int centerY, int radius, bool erase)
 {
     for (int dx = -radius; dx <= radius; dx++)
     {
@@ -273,8 +247,7 @@ void useBrush(
             int x = centerX + dx;
             int y = centerY + dy;
 
-            if (x < 0 || x >= WIDTH ||
-                    y < 0 || y >= HEIGHT)
+            if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
             {
                 continue;
             }
@@ -296,10 +269,7 @@ void useBrush(
     }
 }
 
-void updateParticle(
-        Particle& p,
-        int index,
-        float deltaTime)
+void updateParticle( Particle& p, int index, float deltaTime)
 {
     // -----------------------------------------
     // Gravity
@@ -307,26 +277,20 @@ void updateParticle(
 
     if (p.isAffectedByGravity())
     {
-        p.applyGravity(
-                p.getMaterial().gravityValue,
-                deltaTime
-                );
+        p.applyGravity( p.getMaterial().gravityValue, deltaTime);
     }
 
     // -----------------------------------------
     // Calculate vertical movement
     // -----------------------------------------
 
-    float movement =
-        p.getVelocity() * deltaTime;
+    float movement = p.getVelocity() * deltaTime;
 
-    int steps =
-        static_cast<int>(std::abs(movement));
+    int steps = static_cast<int>(std::abs(movement));
 
     steps = std::clamp(steps, 1, 4);
 
-    int direction =
-        p.getMaterial().dir;
+    int direction = p.getMaterial().dir;
 
     // -----------------------------------------
     // Vertical + diagonal movement
@@ -356,8 +320,7 @@ void updateParticle(
         // Vertical movement
         // -------------------------------------
 
-        int otherIndex =
-            occupied[nextY][x];
+        int otherIndex = occupied[nextY][x];
 
         if (canDisplace(index, otherIndex))
         {
@@ -395,19 +358,15 @@ void updateParticle(
 
         bool moved = false;
 
-        int firstDirection =
-            (fastRandom() & 1) ? -1 : 1;
+        int firstDirection = (fastRandom() & 1) ? -1 : 1;
 
         for (int attempt = 0; attempt < 2; attempt++)
         {
-            int nextX =
-                x + firstDirection;
+            int nextX = x + firstDirection;
 
-            if (nextX >= 0 &&
-                    nextX < WIDTH)
+            if (nextX >= 0 && nextX < WIDTH)
             {
-                int diagonalIndex =
-                    occupied[nextY][nextX];
+                int diagonalIndex = occupied[nextY][nextX];
 
                 if (canDisplace( index, diagonalIndex))
                 {
@@ -419,10 +378,7 @@ void updateParticle(
                     {
                         particles[diagonalIndex] .setPosition( x, y);
 
-                        setPixel( x, y,
-                                particles[diagonalIndex]
-                                .getMaterial()
-                                );
+                        setPixel( x, y, particles[diagonalIndex] .getMaterial());
                     }
                     else
                     {
@@ -460,30 +416,23 @@ void updateParticle(
     // Horizontal spreading
     // -----------------------------------------
 
-    float spread =
-        p.getSpread();
+    float spread = p.getSpread();
 
     if (spread > 0.0f)
     {
-        int maxSpread =
-            static_cast<int>(
-                    spread * 10.0f
-                    );
+        int maxSpread = static_cast<int>( spread * 10.0f);
 
         if (maxSpread < 1)
             maxSpread = 1;
 
-        for (int distance = 1;
-                distance <= maxSpread;
-                distance++)
+        for (int distance = 1; distance <= maxSpread; distance++)
         {
             int leftX = p.getX() - distance;
             int rightX = p.getX() + distance;
 
             int y = p.getY();
 
-            if (leftX >= 0 &&
-                    occupied[y][leftX] == -1)
+            if (leftX >= 0 && occupied[y][leftX] == -1)
             {
                 clearPixel(p.getX(), y);
 
@@ -498,8 +447,7 @@ void updateParticle(
                 break;
             }
 
-            if (rightX < WIDTH &&
-                    occupied[y][rightX] == -1)
+            if (rightX < WIDTH && occupied[y][rightX] == -1)
             {
                 clearPixel(p.getX(), y);
 
@@ -542,10 +490,7 @@ int main()
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(
-            GLFW_OPENGL_PROFILE,
-            GLFW_OPENGL_CORE_PROFILE
-            );
+    glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
     // --------------------------------------------------
@@ -577,8 +522,7 @@ int main()
     // 3. Initialize GLAD
     // --------------------------------------------------
 
-    if (!gladLoadGLLoader(
-                (GLADloadproc)glfwGetProcAddress))
+    if (!gladLoadGLLoader( (GLADloadproc)glfwGetProcAddress))
     {
         std::cerr << "Failed to initialize GLAD\n";
         return -1;
@@ -629,74 +573,43 @@ int main()
     // 4. Load shaders from files
     // --------------------------------------------------
 
-    std::string vertexSource =
-        readFile("../shaders/vertex.glsl");
+    std::string vertexSource = readFile("../shaders/vertex.glsl");
 
-    std::string fragmentSource =
-        readFile("../shaders/fragment.glsl");
+    std::string fragmentSource = readFile("../shaders/fragment.glsl");
 
 
     // --------------------------------------------------
     // 5. Compile shaders
     // --------------------------------------------------
 
-    GLuint vertexShader =
-        compileShader(
-                GL_VERTEX_SHADER,
-                vertexSource
-                );
+    GLuint vertexShader = compileShader( GL_VERTEX_SHADER, vertexSource);
 
-    GLuint fragmentShader =
-        compileShader(
-                GL_FRAGMENT_SHADER,
-                fragmentSource
-                );
-
+    GLuint fragmentShader = compileShader( GL_FRAGMENT_SHADER, fragmentSource);
 
     // --------------------------------------------------
     // 6. Create shader program
     // --------------------------------------------------
 
-    GLuint shaderProgram =
-        glCreateProgram();
+    GLuint shaderProgram = glCreateProgram();
 
-    glAttachShader(
-            shaderProgram,
-            vertexShader
-            );
-
-    glAttachShader(
-            shaderProgram,
-            fragmentShader
-            );
-
+    glAttachShader( shaderProgram, vertexShader);
+    glAttachShader( shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
-
 
     // Check linking
     int success;
 
-    glGetProgramiv(
-            shaderProgram,
-            GL_LINK_STATUS,
-            &success
-            );
+    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &success);
 
     if (!success)
     {
         char infoLog[512];
 
-        glGetProgramInfoLog(
-                shaderProgram,
-                512,
-                nullptr,
-                infoLog
-                );
+        glGetProgramInfoLog( shaderProgram, 512, nullptr, infoLog);
 
         std::cerr << "Shader linking failed:\n"
             << infoLog << '\n';
     }
-
 
     // We don't need these anymore
     glDeleteShader(vertexShader);
@@ -704,11 +617,7 @@ int main()
 
     glUseProgram(shaderProgram);
 
-    int textureLocation =
-        glGetUniformLocation(
-                shaderProgram,
-                "screenTexture"
-                );
+    int textureLocation = glGetUniformLocation( shaderProgram, "screenTexture");
 
     glUniform1i( textureLocation, 0);
 
@@ -848,23 +757,14 @@ int main()
             if (!p.isMovable())
                 continue;
 
-            updateParticle(
-                    p,
-                    i,
-                    deltaTime
-                    );
+            updateParticle( p, i, deltaTime);
         }
 
         // ---------------------------------------------
         // Clear screen
         // ---------------------------------------------
 
-        glClearColor(
-                0.0f,
-                0.0f,
-                0.0f,
-                1.0f
-                );
+        glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
 
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -917,16 +817,12 @@ int main()
             double fps =
                 frameCount / (currentFPS - fpsTimer);
 
-            std::string title =
-                "Pixel simulation | Particles: " +
+            std::string title = "Pixel simulation | Particles: " +
                 std::to_string(particleCount) +
                 " | FPS: " +
                 std::to_string(fps);
 
-            glfwSetWindowTitle(
-                    window,
-                    title.c_str()
-                    );
+            glfwSetWindowTitle( window, title.c_str());
 
             frameCount = 0;
             fpsTimer = currentFPS;
