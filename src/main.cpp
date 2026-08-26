@@ -5,8 +5,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <cstdlib>
-#include <ctime>
 #include <cmath>
 #include <vector>
 #include <algorithm>
@@ -14,6 +12,8 @@
 #include "Particle.h"
 #include "Fire.h"
 #include "Materials.h"
+#include "MaterialSelector.h"
+#include "Mouse.hpp"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -121,45 +121,6 @@ std::string readFile(const char* path)
     return buffer.str();
 }
 
-// void placeParticle(int x, int y)
-// {
-//     if (x < 0 || x >= WIDTH ||
-//             y < 0 || y >= HEIGHT)
-//         return;
-//
-//     if (particleCount >= PARTICLE_COUNT)
-//         return;
-//
-//     if (occupied[y][x] != -1)
-//         return;
-//
-//     particles[particleCount] =
-//         Particle(
-//                 x,
-//                 y,
-//                 *selectedMaterial
-//                 );
-//
-//     // Fire gets an initial upward velocity
-//     if (selectedMaterial->isFire)
-//     {
-//         particles[particleCount].setVelocity(
-//                 -(400.0f + rand() % 150)
-//                 );
-//
-//         particles[particleCount].setHorizontalVelocity(
-//                 (rand() % 61) - 30.0f
-//                 );
-//         particles[particleCount].setLifetime(
-//                 1.0f + (rand() % 100) / 100.0f
-//                 );
-//     }
-//
-//     occupied[y][x] = particleCount;
-//
-//     particleCount++;
-// }
-
 void placeParticle(int x, int y)
 {
     if (x < 0 || x >= WIDTH ||
@@ -242,42 +203,6 @@ GLuint compileShader(GLenum type, const std::string& source)
     return shader;
 }
 
-// void removeParticle(int index)
-// {
-//     if (index < 0 || index >= particleCount)
-//         return;
-//
-//     int lastIndex = particleCount - 1;
-//
-//     int x = particles[index].getX();
-//     int y = particles[index].getY();
-//
-//     // Remove the particle from the occupied grid
-//     occupied[y][x] = -1;
-//
-//     // If this isn't the last particle,
-//     // move the last particle into its place
-//     if (index != lastIndex)
-//     {
-//         int lastX = particles[lastIndex].getX();
-//         int lastY = particles[lastIndex].getY();
-//
-//         // Remove old occupied position
-//         occupied[lastY][lastX] = -1;
-//
-//         // Move last particle into removed particle's slot
-//         particles[index] = particles[lastIndex];
-//
-//         // Update occupied grid
-//         int newX = particles[index].getX();
-//         int newY = particles[index].getY();
-//
-//         occupied[newY][newX] = index;
-//     }
-//
-//     particleCount--;
-// }
-
 void removeParticle(int index)
 {
     if (index < 0 || index >= particleCount)
@@ -329,223 +254,48 @@ void removeParticle(int index)
     particleCount--;
 }
 
-// void updateParticle(
-//         Particle& p,
-//         int index,
-//         float deltaTime)
-// {
-//     // -----------------------------------------
-//     // Gravity
-//     // -----------------------------------------
-//
-//     if (p.isAffectedByGravity())
-//     {
-//         p.applyGravity(
-//                 p.getMaterial().gravityValue,
-//                 deltaTime
-//                 );
-//     }
-//
-//     // -----------------------------------------
-//     // Calculate vertical movement
-//     // -----------------------------------------
-//
-//     float movement =
-//         p.getVelocity() * deltaTime;
-//
-//     int steps =
-//         static_cast<int>(std::abs(movement));
-//
-//     steps = std::clamp(steps, 1, 4);
-//
-//     int direction =
-//         p.getMaterial().dir;
-//
-//     // -----------------------------------------
-//     // Vertical + diagonal movement
-//     // -----------------------------------------
-//
-//     bool blocked = false;
-//
-//     for (int step = 0; step < steps; step++)
-//     {
-//         int x = p.getX();
-//         int y = p.getY();
-//
-//         int nextY = y + direction;
-//
-//         // -------------------------------------
-//         // Outside screen
-//         // -------------------------------------
-//
-//         if (nextY < 0 || nextY >= HEIGHT)
-//         {
-//             p.stop();
-//             blocked = true;
-//             break;
-//         }
-//
-//         // -------------------------------------
-//         // Vertical movement
-//         // -------------------------------------
-//
-//         int otherIndex =
-//             occupied[nextY][x];
-//
-//         if (canDisplace(index, otherIndex))
-//         {
-//             clearPixel(x, y);
-//             occupied[y][x] = otherIndex;
-//
-//             if (otherIndex != -1)
-//             {
-//                 particles[otherIndex].setPosition(x, y);
-//                 setPixel( x, y,
-//                         particles[otherIndex].getMaterial()
-//                         );
-//             }
-//
-//             p.setPosition(x, nextY);
-//
-//             occupied[nextY][x] = index;
-//             // Draw particle at new position
-//             setPixel(
-//                     x,
-//                     nextY,
-//                     p.getMaterial()
-//                     );
-//
-//             continue;
-//         }
-//
-//         // -------------------------------------
-//         // Diagonal movement
-//         // -------------------------------------
-//
-//         bool moved = false;
-//
-//         int firstDirection =
-//             (fastRandom() & 1) ? -1 : 1;
-//
-//         for (int attempt = 0; attempt < 2; attempt++)
-//         {
-//             int nextX = x + firstDirection;
-//
-//             if (nextX >= 0 && nextX < WIDTH)
-//             {
-//                 int diagonalIndex =
-//                     occupied[nextY][nextX];
-//
-//                 if (canDisplace(index, diagonalIndex))
-//                 {
-//                     occupied[y][x] = diagonalIndex;
-//
-//                     if (diagonalIndex != -1)
-//                     {
-//                         particles[diagonalIndex]
-//                             .setPosition(x, y);
-//                     }
-//
-//                     p.setPosition(
-//                             nextX,
-//                             nextY
-//                             );
-//
-//                     occupied[nextY][nextX] = index;
-//
-//                     moved = true;
-//                     break;
-//                 }
-//             }
-//
-//             firstDirection *= -1;
-//         }
-//
-//         if (moved)
-//             continue;
-//
-//         // We couldn't move vertically or diagonally
-//         blocked = true;
-//         break;
-//     }
-//
-//     // -----------------------------------------
-//     // Horizontal spreading
-//     // -----------------------------------------
-//
-//     float spread = p.getSpread();
-//
-//     if (spread > 0.0f)
-//     {
-//         int maxSpread =
-//             static_cast<int>(spread * 10.0f);
-//
-//         if (maxSpread < 1)
-//             maxSpread = 1;
-//
-//         for (int distance = 0;
-//                 distance < maxSpread;
-//                 distance++)
-//         {
-//             int x = p.getX();
-//             int y = p.getY();
-//
-//             int side =
-//                 (fastRandom() & 1)
-//                 ? -1
-//                 : 1;
-//
-//             int nextX = x + side;
-//
-//             // Try chosen direction
-//             if (nextX >= 0 &&
-//                     nextX < WIDTH &&
-//                     occupied[y][nextX] == -1)
-//             {
-//                 occupied[y][x] = -1;
-//
-//                 p.setPosition(
-//                         nextX,
-//                         y
-//                         );
-//
-//                 occupied[y][nextX] = index;
-//
-//                 continue;
-//             }
-//
-//             // Try opposite direction
-//             nextX = x - side;
-//
-//             if (nextX >= 0 &&
-//                     nextX < WIDTH &&
-//                     occupied[y][nextX] == -1)
-//             {
-//                 occupied[y][x] = -1;
-//
-//                 p.setPosition(
-//                         nextX,
-//                         y
-//                         );
-//
-//                 occupied[y][nextX] = index;
-//
-//                 continue;
-//             }
-//
-//             break;
-//         }
-//     }
-//
-//     // -----------------------------------------
-//     // Completely blocked
-//     // -----------------------------------------
-//
-//     if (blocked && spread <= 0.0f)
-//     {
-//         p.stop();
-//     }
-// }
+void useBrush(
+        int centerX,
+        int centerY,
+        int radius,
+        bool erase)
+{
+    for (int dx = -radius; dx <= radius; dx++)
+    {
+        for (int dy = -radius; dy <= radius; dy++)
+        {
+            if (dx * dx + dy * dy >
+                    radius * radius)
+            {
+                continue;
+            }
+
+            int x = centerX + dx;
+            int y = centerY + dy;
+
+            if (x < 0 || x >= WIDTH ||
+                    y < 0 || y >= HEIGHT)
+            {
+                continue;
+            }
+
+            if (erase)
+            {
+                int index = occupied[y][x];
+
+                if (index != -1)
+                {
+                    removeParticle(index);
+                }
+            }
+            else
+            {
+                placeParticle(x, y);
+            }
+        }
+    }
+}
+
 void updateParticle(
         Particle& p,
         int index,
@@ -851,7 +601,6 @@ void updateParticle(
 
 int main()
 {
-    srand(static_cast<unsigned>(time(nullptr)));
     clearOccupied();
 
     // --------------------------------------------------
@@ -890,6 +639,9 @@ int main()
         glfwTerminate();
         return -1;
     }
+
+    Mouse mouse( window, WIDTH, HEIGHT);
+    MaterialSelector materialSelector(window);
 
     glfwMakeContextCurrent(window);
 
@@ -1031,10 +783,11 @@ int main()
                 "screenTexture"
                 );
 
-    glUniform1i(
-            textureLocation,
-            0
-            );
+    glUniform1i( textureLocation, 0);
+
+    // --------------------------------------------------
+    // Particle rendering
+    // --------------------------------------------------
 
     float quadVertices[] =
     {
@@ -1086,69 +839,9 @@ int main()
 
     glBindVertexArray(0);
 
-    // // --------------------------------------------------
-    // // Particle rendering VAO + VBO
-    // // --------------------------------------------------
-    //
-    // GLuint VAO;
-    // GLuint particleVBO;
-    //
-    // glGenVertexArrays(1, &VAO);
-    // glGenBuffers(1, &particleVBO);
-    //
-    // glBindVertexArray(VAO);
-    //
-    // glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
-    //
-    // glBufferData(
-    //         GL_ARRAY_BUFFER,
-    //         PARTICLE_COUNT * 6 * sizeof(float),
-    //         nullptr,
-    //         GL_DYNAMIC_DRAW
-    //         );
-    //
-    // // ---------------------------------------------
-    // // Position: x, y
-    // // ---------------------------------------------
-    //
-    // glVertexAttribPointer(
-    //         0,
-    //         2,
-    //         GL_FLOAT,
-    //         GL_FALSE,
-    //         6 * sizeof(float),
-    //         (void*)0
-    //         );
-    //
-    // glEnableVertexAttribArray(0);
-    //
-    // // ---------------------------------------------
-    // // Color: r, g, b, a
-    // // ---------------------------------------------
-    //
-    // glVertexAttribPointer(
-    //         1,
-    //         4,
-    //         GL_FLOAT,
-    //         GL_FALSE,
-    //         6 * sizeof(float),
-    //         (void*)(2 * sizeof(float))
-    //         );
-    //
-    // glEnableVertexAttribArray(1);
-    //
-    // glBindVertexArray(0);
-
     // --------------------------------------------------
     // Particle arrays
     // --------------------------------------------------
-
-    std::vector<float> renderData;
-
-    renderData.reserve(PARTICLE_COUNT * 6);
-
-    // int windowSizeLocation =
-    //     glGetUniformLocation(shaderProgram, "windowSize");
 
     float lastTime = glfwGetTime();
     double fpsTimer = glfwGetTime();
@@ -1164,114 +857,38 @@ int main()
         // Material selection
         // ---------------------------------------------
 
-        if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-        {
-            selectedMaterial = &sandMaterial;
-        }
+        const Material* newMaterial =
+            materialSelector.update();
 
-        if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+        if (newMaterial != nullptr)
         {
-            selectedMaterial = &stoneMaterial;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-        {
-            selectedMaterial = &fireMaterial;
-        }
-
-        if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
-        {
-            selectedMaterial = &waterMaterial;
-        }
-        if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
-        {
-            selectedMaterial = &smokeMaterial;
-        }
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        {
-            break;
+            selectedMaterial = newMaterial;
         }
 
         // ---------------------------------------------
         // Mouse
         // ---------------------------------------------
+        mouse.update();
 
-        double mouseX;
-        double mouseY;
-
-        glfwGetCursorPos(window, &mouseX, &mouseY);
-
-        int windowWidth;
-        int windowHeight;
-
-        glfwGetWindowSize(
-                window,
-                &windowWidth,
-                &windowHeight
-                );
-
-        int gridX =
-            static_cast<int>(
-                    mouseX * WIDTH / windowWidth
-                    );
-
-        int gridY =
-            static_cast<int>(
-                    mouseY * HEIGHT / windowHeight
-                    );
+        int gridX = mouse.getX();
+        int gridY = mouse.getY();
 
         const int BRUSH_RADIUS = 8;
 
-        if (glfwGetMouseButton(
-                    window,
-                    GLFW_MOUSE_BUTTON_LEFT
-                    ) == GLFW_PRESS)
+
+        if (mouse.isLeftPressed())
         {
-            for (int dx = -BRUSH_RADIUS; dx <= BRUSH_RADIUS; dx++)
-            {
-                for (int dy = -BRUSH_RADIUS; dy <= BRUSH_RADIUS; dy++)
-                {
-                    if (dx * dx + dy * dy <=
-                            BRUSH_RADIUS * BRUSH_RADIUS)
-                    {
-                        placeParticle(
-                                gridX + dx,
-                                gridY + dy
-                                );
-                    }
-                }
-            }
+            useBrush( gridX, gridY, BRUSH_RADIUS, false);
         }
 
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        else if (mouse.isErasePressed())
         {
-            for (int dx = -BRUSH_RADIUS; dx <= BRUSH_RADIUS; dx++)
-            {
-                for (int dy = -BRUSH_RADIUS; dy <= BRUSH_RADIUS; dy++)
-                {
-                    if (dx * dx + dy * dy <=
-                            BRUSH_RADIUS * BRUSH_RADIUS)
-                    {
-                        int x = gridX + dx;
-                        int y = gridY + dy;
+            useBrush( gridX, gridY, BRUSH_RADIUS, true);
+        }
 
-                        // Check bounds
-                        if (x < 0 || x >= WIDTH ||
-                                y < 0 || y >= HEIGHT)
-                        {
-                            continue;
-                        }
-
-                        // Get particle index from grid
-                        int index = occupied[y][x];
-
-                        if (index != -1)
-                        {
-                            removeParticle(index);
-                        }
-                    }
-                }
-            }
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        {
+            break;
         }
 
         // ---------------------------------------------
@@ -1324,84 +941,13 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-
-        // ---------------------------------------------
-        // Draw
-        // ---------------------------------------------
-
-        // glUseProgram(shaderProgram);
-        //
-        // glBindVertexArray(VAO);
-        //
-        // glUniform2f( windowSizeLocation,
-        //         static_cast<float>(WIDTH),
-        //         static_cast<float>(HEIGHT));
-        //
-        // // ---------------------------------------------
-        // // Draw particle
-        // // ---------------------------------------------
-        // renderData.clear();
-        //
-        // for (int i = 0; i < particleCount; i++)
-        // {
-        //     const Particle& p = particles[i];
-        //     const Material& m = p.getMaterial();
-        //
-        //     int j = i * 6;
-        //
-        //     renderData[j + 0] = static_cast<float>(p.getX());
-        //     renderData[j + 1] = static_cast<float>(p.getY());
-        //
-        //     renderData[j + 2] = m.r;
-        //     renderData[j + 3] = m.g;
-        //     renderData[j + 4] = m.b;
-        //     renderData[j + 5] = m.a;
-        // }
-        //
-        // // Upload particle data
-        // glBindBuffer( GL_ARRAY_BUFFER, particleVBO);
-        //
-        // glBufferSubData(
-        //         GL_ARRAY_BUFFER,
-        //         0,
-        //         particleCount * 6 * sizeof(float),
-        //         renderData.data()
-        //         );
-        //
-        // // glBufferSubData(
-        // //         GL_ARRAY_BUFFER,
-        // //         0,
-        // //         renderData.size() * sizeof(float),
-        // //         renderData.data()
-        // //         );
-        //
-        // glUseProgram(shaderProgram);
-        //
-        // // Draw ALL particles in one call
-        // glBindVertexArray(VAO);
-        //
-        // glUniform2f(
-        //         windowSizeLocation,
-        //         static_cast<float>(WIDTH),
-        //         static_cast<float>(HEIGHT)
-        //         );
-        //
-        // glDrawArrays(
-        //         GL_POINTS,
-        //         0,
-        //         particleCount
-        //         );
-
         // ---------------------------------------------
         // Upload pixel buffer to texture
         // ---------------------------------------------
 
         glActiveTexture(GL_TEXTURE0);
 
-        glBindTexture(
-                GL_TEXTURE_2D,
-                screenTexture
-                );
+        glBindTexture( GL_TEXTURE_2D, screenTexture);
 
         glTexSubImage2D(
                 GL_TEXTURE_2D,
@@ -1420,24 +966,10 @@ int main()
         // ---------------------------------------------
 
         glUseProgram(shaderProgram);
-        int textureLocation =
-            glGetUniformLocation(
-                    shaderProgram,
-                    "screenTexture"
-                    );
-
-        glUniform1i(
-                textureLocation,
-                0
-                );
 
         glBindVertexArray(quadVAO);
 
-        glDrawArrays(
-                GL_TRIANGLES,
-                0,
-                6
-                );
+        glDrawArrays( GL_TRIANGLES, 0, 6);
 
         // ---------------------------------------------
         // Show frame
@@ -1478,9 +1010,6 @@ int main()
     // --------------------------------------------------
     // 11. Cleanup
     // --------------------------------------------------
-
-    // glDeleteVertexArrays(1, &VAO);
-    // glDeleteBuffers(1, &particleVBO);
 
     glDeleteVertexArrays( 1, &quadVAO);
     glDeleteBuffers( 1, &quadVBO);

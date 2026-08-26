@@ -12,6 +12,8 @@ find_package(glm REQUIRED)
 
 add_executable(OpenGLProject
     src/main.cpp
+    src/Mouse.cpp
+    src/MaterialSelector.cpp
     src/particle.cpp
     src/fire.cpp
     src/glad.c
