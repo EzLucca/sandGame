@@ -11,7 +11,8 @@ class Particle
         float horizontalVelocity;
         float lifetime = -1.0f;
         Material material;
-        bool moved = false;
+        bool active = false;
+        int activeIndex = -1;
 
     public:
         Particle();
@@ -33,7 +34,6 @@ class Particle
 
         int getX() const;
         int getY() const;
-        float getVelocity();
         bool isAffectedByGravity() const;
         bool isMovable() const;
         float getSpread() const;
@@ -51,7 +51,9 @@ class Particle
         void updateLifetime(float deltaTime);
         bool isDead() const;
 
-        void setMoved(bool value);
-        bool hasMoved() const;
+        void setActive(bool value);
+        bool isActive() const;
+        int getActiveIndex() const;
+        void setActiveIndex(int index);
 };
 

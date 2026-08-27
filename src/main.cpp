@@ -1,6 +1,5 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -19,6 +18,16 @@ const int WIDTH = 800;
 const int HEIGHT = 600;
 
 int occupied[HEIGHT][WIDTH];
+
+const Material* selectedMaterial = &sandMaterial;
+
+const int PARTICLE_COUNT = 1000000;
+
+Particle particles[PARTICLE_COUNT];
+
+int particleCount = 0;
+std::vector<int> activeParticles;
+std::vector<int> nextActiveParticles;
 
 std::vector<unsigned char> pixelData( WIDTH * HEIGHT * 4, 0);
 
@@ -41,23 +50,15 @@ inline void setPixel(int x, int y, const Material& material)
 
     int index = (y * WIDTH + x) * 4;
 
-    pixelData[index + 0] =
-        static_cast<unsigned char>(material.r * 255.0f);
-
-    pixelData[index + 1] =
-        static_cast<unsigned char>(material.g * 255.0f);
-
-    pixelData[index + 2] =
-        static_cast<unsigned char>(material.b * 255.0f);
-
-    pixelData[index + 3] =
-        static_cast<unsigned char>(material.a * 255.0f);
+    pixelData[index + 0] = static_cast<unsigned char>(material.r * 255.0f);
+    pixelData[index + 1] = static_cast<unsigned char>(material.g * 255.0f);
+    pixelData[index + 2] = static_cast<unsigned char>(material.b * 255.0f);
+    pixelData[index + 3] = static_cast<unsigned char>(material.a * 255.0f);
 }
 
 inline void clearPixel(int x, int y)
 {
-    if (x < 0 || x >= WIDTH ||
-            y < 0 || y >= HEIGHT)
+    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
         return;
 
     int index = (y * WIDTH + x) * 4;
@@ -79,13 +80,6 @@ void clearOccupied()
     }
 }
 
-const Material* selectedMaterial = &sandMaterial;
-
-const int PARTICLE_COUNT = 1000000;
-
-Particle particles[PARTICLE_COUNT];
-
-int particleCount = 0;
 
 bool canDisplace(int particleIndex, int otherIndex)
 {
@@ -104,7 +98,6 @@ bool canDisplace(int particleIndex, int otherIndex)
     return myDensity > otherDensity;
 }
 
-// Read a text file
 std::string readFile(const char* path)
 {
     std::ifstream file(path);
@@ -121,10 +114,78 @@ std::string readFile(const char* path)
     return buffer.str();
 }
 
+void activateParticle(int index)
+{
+    if (index < 0 || index >= particleCount)
+        return;
+
+    Particle& p = particles[index];
+
+    if (p.isActive())
+        return;
+
+    p.setActive(true);
+
+    nextActiveParticles.push_back(index);
+}
+
+void deactivateParticle(int index)
+{
+    if (index < 0 || index >= particleCount)
+        return;
+
+    particles[index].setActive(false);
+}
+
+void wakeNeighbors(int x, int y)
+{
+    for (int dy = -1; dy <= 1; dy++)
+    {
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            if (dx == 0 && dy == 0)
+                continue;
+
+            int nx = x + dx;
+            int ny = y + dy;
+
+            if (nx < 0 || nx >= WIDTH ||
+                    ny < 0 || ny >= HEIGHT)
+                continue;
+
+            int index = occupied[ny][nx];
+
+            if (index == -1)
+                continue;
+
+            if (!particles[index].isMovable())
+                continue;
+
+            activateParticle(index);
+        }
+    }
+}
+
+void moveParticle(int index, int newX, int newY)
+{
+    Particle& p = particles[index];
+
+    int oldX = p.getX();
+    int oldY = p.getY();
+
+    occupied[oldY][oldX] = -1;
+    clearPixel(oldX, oldY);
+
+    wakeNeighbors(oldX, oldY);
+    p.setPosition(newX, newY);
+
+    occupied[newY][newX] = index;
+    setPixel(newX, newY, p.getMaterial());
+}
+
 void placeParticle(int x, int y)
 {
-    if (x < 0 || x >= WIDTH ||
-            y < 0 || y >= HEIGHT)
+    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
         return;
 
     if (particleCount >= PARTICLE_COUNT)
@@ -133,29 +194,35 @@ void placeParticle(int x, int y)
     if (occupied[y][x] != -1)
         return;
 
-    particles[particleCount] = Particle( x, y, *selectedMaterial);
+    // saving the particle on index
+    int newIndex = particleCount++;
+    particles[newIndex] = Particle( x, y, *selectedMaterial);
 
     // Fire
+
     if (selectedMaterial->isFire)
     {
-        particles[particleCount].setVelocity( -(400.0f + fastRandom() % 150));
+        particles[newIndex].setVelocity(
+                -(400.0f + fastRandom() % 150)
+                );
 
-        particles[particleCount].setHorizontalVelocity(
+        particles[newIndex].setHorizontalVelocity(
                 static_cast<float>(
                     static_cast<int>(fastRandom() % 61) - 30
                     )
                 );
 
-        particles[particleCount].setLifetime( 1.0f + (fastRandom() % 100) / 100.0f);
+        particles[newIndex].setLifetime(
+                1.0f + (fastRandom() % 100) / 100.0f
+                );
     }
 
-    occupied[y][x] = particleCount;
+    occupied[y][x] = newIndex;
 
-    // NEW:
     // Draw the particle directly into the pixel buffer.
     setPixel( x, y, *selectedMaterial);
 
-    particleCount++;
+    activateParticle(newIndex);
 }
 
 // Compile a shader
@@ -178,8 +245,7 @@ GLuint compileShader(GLenum type, const std::string& source)
 
         glGetShaderInfoLog( shader, 512, nullptr, infoLog);
 
-        std::cerr << "Shader compilation failed:\n"
-            << infoLog << '\n';
+        std::cerr << "Shader compilation failed:\n" << infoLog << '\n';
     }
 
     return shader;
@@ -190,46 +256,26 @@ void removeParticle(int index)
     if (index < 0 || index >= particleCount)
         return;
 
-    int lastIndex = particleCount - 1;
+    Particle& p = particles[index];
 
-    int x = particles[index].getX();
-    int y = particles[index].getY();
+    int x = p.getX();
+    int y = p.getY();
 
-    // Remove particle from grid
-    occupied[y][x] = -1;
-
-    // Remove its pixel
-    clearPixel(x, y);
-
-    if (index != lastIndex)
+    if (x >= 0 && x < WIDTH &&
+            y >= 0 && y < HEIGHT)
     {
-        int lastX =
-            particles[lastIndex].getX();
+        if (occupied[y][x] == index)
+        {
+            occupied[y][x] = -1;
+            clearPixel(x, y);
 
-        int lastY =
-            particles[lastIndex].getY();
-
-        // Remove old grid position
-        occupied[lastY][lastX] = -1;
-
-        // Move last particle into this slot
-        particles[index] =
-            particles[lastIndex];
-
-        // Update grid
-        int newX =
-            particles[index].getX();
-
-        int newY =
-            particles[index].getY();
-
-        occupied[newY][newX] = index;
-
-        // Make sure the moved particle is rendered
-        setPixel( newX, newY, particles[index].getMaterial());
+            // Something above may now fall.
+            wakeNeighbors(x, y);
+        }
     }
 
-    particleCount--;
+    p.setActive(false);
+    p.setPosition(-1, -1);
 }
 
 void useBrush( int centerX, int centerY, int radius, bool erase)
@@ -238,8 +284,7 @@ void useBrush( int centerX, int centerY, int radius, bool erase)
     {
         for (int dy = -radius; dy <= radius; dy++)
         {
-            if (dx * dx + dy * dy >
-                    radius * radius)
+            if (dx * dx + dy * dy > radius * radius)
             {
                 continue;
             }
@@ -311,6 +356,11 @@ void updateParticle( Particle& p, int index, float deltaTime)
 
         if (nextY < 0 || nextY >= HEIGHT)
         {
+            if (p.getMaterial().isFire)
+            {
+                removeParticle(index);
+                return;
+            }
             p.stop();
             blocked = true;
             break;
@@ -330,25 +380,25 @@ void updateParticle( Particle& p, int index, float deltaTime)
 
             if (otherIndex != -1)
             {
-                particles[otherIndex].setPosition( x, y);
+                particles[otherIndex].setPosition(x, y);
+                activateParticle(otherIndex);
 
-                // Draw displaced particle
-                setPixel( x, y, particles[otherIndex].getMaterial());
+                setPixel(x, y,
+                        particles[otherIndex].getMaterial());
             }
             else
             {
-                // Old position becomes empty
                 clearPixel(x, y);
+                wakeNeighbors(x, y);
             }
 
-            // Move our particle
-            p.setPosition( x, nextY);
-            p.setMoved(true);
-
-            // Draw our particle at its new position
-            setPixel( x, nextY, p.getMaterial());
+            p.setPosition(x, nextY);
 
             occupied[nextY][x] = index;
+
+            setPixel( x, nextY, p.getMaterial());
+
+            activateParticle(index);
 
             continue;
         }
@@ -378,21 +428,27 @@ void updateParticle( Particle& p, int index, float deltaTime)
                     if (diagonalIndex != -1)
                     {
                         particles[diagonalIndex] .setPosition( x, y);
+                        activateParticle(diagonalIndex);
 
                         setPixel( x, y, particles[diagonalIndex] .getMaterial());
                     }
                     else
                     {
                         clearPixel(x, y);
+                        // The particle that was resting on us
+                        // may now be able to fall.
+                        wakeNeighbors(x, y);
                     }
 
                     // Move our particle diagonally
                     p.setPosition( nextX, nextY);
-                    p.setMoved(true);
+                    // p.setActive(true);
+                    activateParticle(index);
 
                     setPixel( nextX, nextY, p.getMaterial());
 
                     occupied[nextY][nextX] = index;
+                    // wakeNeighbors(nextX, nextY);
 
                     moved = true;
                     break;
@@ -403,8 +459,10 @@ void updateParticle( Particle& p, int index, float deltaTime)
         }
 
         if (moved)
+        {
+            activateParticle(index);
             continue;
-
+        }
         // -------------------------------------
         // We couldn't move vertically
         // or diagonally
@@ -436,32 +494,44 @@ void updateParticle( Particle& p, int index, float deltaTime)
 
             if (leftX >= 0 && occupied[y][leftX] == -1)
             {
-                clearPixel(p.getX(), y);
+                int oldX = p.getX();
+                int oldY = p.getY();
 
-                occupied[y][p.getX()] = -1;
+                // Old cell becomes empty
+                occupied[oldY][oldX] = -1;
+                clearPixel(oldX, oldY);
 
-                p.setPosition(leftX, y);
-                p.setMoved(true);
+                // The particle above may now fall
+                wakeNeighbors(oldX, oldY);
 
-                occupied[y][leftX] = index;
+                // Move particle
+                p.setPosition(leftX, oldY);
 
-                setPixel( leftX, y, p.getMaterial());
+                // Occupy new cell
+                occupied[oldY][leftX] = index;
+                setPixel(leftX, oldY, p.getMaterial());
+
+                // It moved, so process it again next frame
+                activateParticle(index);
 
                 break;
             }
-
             if (rightX < WIDTH && occupied[y][rightX] == -1)
             {
-                clearPixel(p.getX(), y);
+                int oldX = p.getX();
+                int oldY = p.getY();
 
-                occupied[y][p.getX()] = -1;
+                occupied[oldY][oldX] = -1;
+                clearPixel(oldX, oldY);
 
-                p.setPosition(rightX, y);
-                p.setMoved(true);
+                wakeNeighbors(oldX, oldY);
 
-                occupied[y][rightX] = index;
+                p.setPosition(rightX, oldY);
 
-                setPixel( rightX, y, p.getMaterial());
+                occupied[oldY][rightX] = index;
+                setPixel(rightX, oldY, p.getMaterial());
+
+                activateParticle(index);
 
                 break;
             }
@@ -475,6 +545,10 @@ void updateParticle( Particle& p, int index, float deltaTime)
     if (blocked && spread <= 0.0f)
     {
         p.stop();
+        if (p.hasLifetime())
+        {
+            activateParticle(index);
+        }
     }
 }
 
@@ -501,9 +575,7 @@ int main()
     // 2. Create window
     // --------------------------------------------------
 
-    GLFWwindow* window = glfwCreateWindow(
-            WIDTH,
-            HEIGHT,
+    GLFWwindow* window = glfwCreateWindow( WIDTH, HEIGHT,
             "Pixel simulation",
             nullptr,
             nullptr
@@ -611,8 +683,7 @@ int main()
 
         glGetProgramInfoLog( shaderProgram, 512, nullptr, infoLog);
 
-        std::cerr << "Shader linking failed:\n"
-            << infoLog << '\n';
+        std::cerr << "Shader linking failed:\n" << infoLog << '\n';
     }
 
     // We don't need these anymore
@@ -640,6 +711,7 @@ int main()
         1.0f,  1.0f,       1.0f, 1.0f,
         -1.0f,  1.0f,       0.0f, 1.0f
     };
+
     GLuint quadVAO;
     GLuint quadVBO;
 
@@ -697,8 +769,7 @@ int main()
         // Material selection
         // ---------------------------------------------
 
-        const Material* newMaterial =
-            materialSelector.update();
+        const Material* newMaterial = materialSelector.update();
 
         if (newMaterial != nullptr)
         {
@@ -743,28 +814,43 @@ int main()
         // Particle movement
         // ---------------------------------------------
 
-        for (int i = 0; i < particleCount; i++)
+        for (int particleIndex : activeParticles)
         {
-            particles[i].setMoved(false);
+            if (particleIndex < 0 || particleIndex >= particleCount)
+                continue;
 
-            Particle& p = particles[i];
+            Particle& p = particles[particleIndex];
 
-            // Lifetime
+            // This particle was scheduled for this frame.
+            // Remove its active flag so it can be scheduled
+            // again for the NEXT frame.
+            p.setActive(false);
+
+            // Particle may already have been removed earlier
+            // in this frame.
+            if (p.getX() < 0 || p.getY() < 0)
+                continue;
+
             p.updateLifetime(deltaTime);
 
             if (p.isDead())
             {
-                removeParticle(i);
-                i--;
+                removeParticle(particleIndex);
                 continue;
             }
+            if (p.hasLifetime())
+            {
+                activateParticle(particleIndex);
+            }
 
-            // Movement
             if (!p.isMovable())
                 continue;
 
-            updateParticle( p, i, deltaTime);
+            updateParticle(p, particleIndex, deltaTime);
         }
+
+        activeParticles.swap(nextActiveParticles);
+        nextActiveParticles.clear();
 
         // ---------------------------------------------
         // Clear screen
@@ -820,12 +906,11 @@ int main()
 
         if (currentFPS - fpsTimer >= 0.5)
         {
-            double fps =
-                frameCount / (currentFPS - fpsTimer);
+            double fps = frameCount / (currentFPS - fpsTimer);
 
             std::string title = "Pixel simulation | Particles: " +
-                std::to_string(particleCount) +
-                " | FPS: " +
+                std::to_string(particleCount) + " | Moving: " +
+                std::to_string(activeParticles.size()) + " | FPS: " +
                 std::to_string(fps);
 
             glfwSetWindowTitle( window, title.c_str());

@@ -36,11 +36,6 @@ int Particle::getY() const
     return y;
 }
 
-float Particle::getVelocity()
-{
-    return velocity;
-}
-
 void Particle::moveDown()
 {
     y++;
@@ -180,11 +175,24 @@ bool Particle::isDead() const
     return lifetime >= 0.0f && lifetime <= 0.0f;
 }
 
-void Particle::setMoved(bool value)
+void Particle::setActive(bool value)
 {
-    moved = value;
+    active = value;
+    if(!value)
+        activeIndex = -1;
 }
-bool Particle::hasMoved() const
+
+bool Particle::isActive() const
 {
-    return moved;
+    return active;
+}
+
+int Particle::getActiveIndex() const
+{
+    return activeIndex;
+}
+
+void Particle::setActiveIndex(int index)
+{
+    activeIndex = index;
 }
