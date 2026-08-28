@@ -9,7 +9,7 @@ inline const Material fireMaterial{
     -1,                         // vertical diretion
     -200.0f,                    // gravityValue
     true,                       // movable
-    1.5f,                       // lifetime
+    1.0f,                       // lifetime
     1.0f, 0.2f, 0.0f, 1.0f,     // rgba
     true
 };
@@ -30,7 +30,7 @@ inline const Material sandMaterial{
 
 inline const Material stoneMaterial{
     0.0f,                       // viscosity
-    2.5f,                       // density
+    10.0f,                       // density
     0.0f,                       // spread
     false,                      // affectedByGravity
     0,                          // vertical diretion

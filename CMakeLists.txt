@@ -17,6 +17,8 @@ add_executable(OpenGLProject
     src/particle.cpp
     src/fire.cpp
     src/glad.c
+    src/Renderer.cpp
+    src/Simulation.cpp
 )
 
 target_include_directories(OpenGLProject PRIVATE
