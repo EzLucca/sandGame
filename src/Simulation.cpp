@@ -164,6 +164,19 @@ void Simulation::placeParticle(int x, int y)
 
     // saving the particle on index
     int newIndex = particleCount++;
+    if (!freeParticles.empty())
+    {
+        // Reuse a previously removed particle slot
+        newIndex = freeParticles.back();
+        freeParticles.pop_back();
+    }
+    else
+    {
+        if (particleCount >= PARTICLE_COUNT)
+            return;
+
+        newIndex = particleCount++;
+    }
     particles[newIndex] = Particle( x, y, *selectedMaterial);
 
     // Fire
@@ -200,23 +213,25 @@ void Simulation::removeParticle(int index)
 
     Particle& p = particles[index];
 
+    if (p.getX() < 0 || p.getY() < 0)
+        return;
+
     int x = p.getX();
     int y = p.getY();
 
-    if (x >= 0 && x < WIDTH &&
-            y >= 0 && y < HEIGHT)
+    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
     {
         if (occupied[y][x] == index)
         {
             occupied[y][x] = -1;
             clearPixel(x, y);
-
             wakeNeighbors(x, y);
         }
     }
 
     p.setActive(false);
     p.setPosition(-1, -1);
+    freeParticles.push_back(index);
 }
 
 void Simulation::useBrush( int centerX, int centerY, int radius, bool erase)

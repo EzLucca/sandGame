@@ -52,6 +52,7 @@ class Simulation
         int occupied[HEIGHT][WIDTH];
 
         std::vector<Particle> particles;
+        std::vector<int> freeParticles;
 
         int particleCount = 0;
 
