@@ -7,7 +7,7 @@ inline const Material fireMaterial{
     1.0f,                       // spread
     false,                      // affectedByGravity
     -1,                         // vertical diretion
-    -200.0f,                    // gravityValue
+    -2.0f,                      // gravityValue
     true,                       // movable
     1.0f,                       // lifetime
     1.0f, 0.2f, 0.0f, 1.0f,     // rgba
@@ -20,7 +20,7 @@ inline const Material sandMaterial{
     0.0f,                       // spread
     true,                       // affectedByGravity
     1,                          // vertical diretion
-    500.0f,                     // gravityValue
+    1.0f,                       // gravityValue
     true,                       // movable
     -1.0f,                      // lifetime
     1.0f, 0.8f, 0.1f, 1.0f,     // rgba    
@@ -47,7 +47,7 @@ inline const Material waterMaterial{
     2.0f,                       // spread
     true,                       // affectedByGravity
     1,                          // vertical diretion
-    500.0f,                     // gravityValue
+    1.0f,                       // gravityValue
     true,                       // movable
     -1.0f,                      // lifetime
     0.0f, 0.4f, 1.0f, 1.0f,     // rgba
@@ -60,7 +60,7 @@ inline const Material smokeMaterial{
     2.5f,                       // spread
     true,                       // affectedByGravity
     -1,                         // vertical diretion
-    -200.0f,                    // gravityValue
+    -2.0f,                    // gravityValue
     true,                       // movable
     -1.0f,                      // lifetime
     0.2f, 0.2f, 0.2f, 1.0f,     // rgba

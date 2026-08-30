@@ -1,12 +1,6 @@
 #pragma once
-#include "Particle.h"
+#include "Simulation.h"
 
-bool canDisplace(int particleIndex, int otherIndex);
-
-void wakeNeighbors(int x, int y);
-
-void moveParticle(int index, int newX, int newY);
-
-void removeParticle(int index);
-
-void updateParticle( Particle& p, int index, float deltaTime);
+namespace Movements {
+    void drawTemporaryCircle(Simulation& simulation, int centerX, int centerY, int radius, float durationSeconds);
+}

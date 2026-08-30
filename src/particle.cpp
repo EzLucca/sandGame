@@ -1,5 +1,6 @@
 #include "Particle.h"
 #include <cstdlib>
+#include <iostream>
 
 Particle::Particle()
 {
@@ -8,9 +9,7 @@ Particle::Particle()
     velocity = 0.0f;
 }
 
-Particle::Particle( int x, int y,
-        const Material& material
-        )
+Particle::Particle( int x, int y, const Material& material)
     : x(x),
     y(y),
     velocity(0.0f),
@@ -19,11 +18,14 @@ Particle::Particle( int x, int y,
 
 { }
 
-void Particle::applyGravity(float gravity, float deltaTime)
+void Particle::applyGravity(int gravity, float deltaTime)
 {
-    velocity += gravity * deltaTime;
-    float drag = 1.0f / (1.0f + material.viscosity * deltaTime);
-    velocity *= drag;
+    // std::cout << deltaTime << std::endl;
+    // velocity += gravity * deltaTime;
+    velocity += gravity;
+    // float drag = 1.0f / (1.0f + material.viscosity * deltaTime);
+    // velocity *= drag;
+    // std::cout << velocity << std::endl;
 }
 
 int Particle::getX() const
@@ -36,32 +38,32 @@ int Particle::getY() const
     return y;
 }
 
-void Particle::moveDown()
-{
-    y++;
-}
+// void Particle::moveDown()
+// {
+//     y++;
+// }
 
-void Particle::moveLeft()
-{
-    x-= (1.0f - material.viscosity);
-}
+// void Particle::moveLeft()
+// {
+//     x-= (1.0f - material.viscosity);
+// }
+//
+// void Particle::moveRight()
+// {
+//     x+= (1.0f + material.viscosity);
+// }
+//
+// void Particle::moveDownLeft()
+// {
+//     x--;
+//     y++;
+// }
 
-void Particle::moveRight()
-{
-    x+= (1.0f + material.viscosity);
-}
-
-void Particle::moveDownLeft()
-{
-    x--;
-    y++;
-}
-
-void Particle::moveDownRight()
-{
-    x++;
-    y++;
-}
+// void Particle::moveDownRight()
+// {
+//     x++;
+//     y++;
+// }
 
 void Particle::stop()
 {

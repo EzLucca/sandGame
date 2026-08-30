@@ -19,6 +19,7 @@ add_executable(OpenGLProject
     src/glad.c
     src/Renderer.cpp
     src/Simulation.cpp
+    src/Movements.cpp
 )
 
 target_include_directories(OpenGLProject PRIVATE

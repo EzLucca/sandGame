@@ -1,0 +1,56 @@
+[
+{
+  "directory": "/home/DL2c/sandV4/build",
+  "command": "/usr/bin/c++  -I/home/DL2c/sandV4/include -std=gnu++17 -o CMakeFiles/OpenGLProject.dir/src/main.cpp.o -c /home/DL2c/sandV4/src/main.cpp",
+  "file": "/home/DL2c/sandV4/src/main.cpp",
+  "output": "CMakeFiles/OpenGLProject.dir/src/main.cpp.o"
+},
+{
+  "directory": "/home/DL2c/sandV4/build",
+  "command": "/usr/bin/c++  -I/home/DL2c/sandV4/include -std=gnu++17 -o CMakeFiles/OpenGLProject.dir/src/Mouse.cpp.o -c /home/DL2c/sandV4/src/Mouse.cpp",
+  "file": "/home/DL2c/sandV4/src/Mouse.cpp",
+  "output": "CMakeFiles/OpenGLProject.dir/src/Mouse.cpp.o"
+},
+{
+  "directory": "/home/DL2c/sandV4/build",
+  "command": "/usr/bin/c++  -I/home/DL2c/sandV4/include -std=gnu++17 -o CMakeFiles/OpenGLProject.dir/src/MaterialSelector.cpp.o -c /home/DL2c/sandV4/src/MaterialSelector.cpp",
+  "file": "/home/DL2c/sandV4/src/MaterialSelector.cpp",
+  "output": "CMakeFiles/OpenGLProject.dir/src/MaterialSelector.cpp.o"
+},
+{
+  "directory": "/home/DL2c/sandV4/build",
+  "command": "/usr/bin/c++  -I/home/DL2c/sandV4/include -std=gnu++17 -o CMakeFiles/OpenGLProject.dir/src/particle.cpp.o -c /home/DL2c/sandV4/src/particle.cpp",
+  "file": "/home/DL2c/sandV4/src/particle.cpp",
+  "output": "CMakeFiles/OpenGLProject.dir/src/particle.cpp.o"
+},
+{
+  "directory": "/home/DL2c/sandV4/build",
+  "command": "/usr/bin/c++  -I/home/DL2c/sandV4/include -std=gnu++17 -o CMakeFiles/OpenGLProject.dir/src/fire.cpp.o -c /home/DL2c/sandV4/src/fire.cpp",
+  "file": "/home/DL2c/sandV4/src/fire.cpp",
+  "output": "CMakeFiles/OpenGLProject.dir/src/fire.cpp.o"
+},
+{
+  "directory": "/home/DL2c/sandV4/build",
+  "command": "/usr/bin/cc  -I/home/DL2c/sandV4/include  -o CMakeFiles/OpenGLProject.dir/src/glad.c.o -c /home/DL2c/sandV4/src/glad.c",
+  "file": "/home/DL2c/sandV4/src/glad.c",
+  "output": "CMakeFiles/OpenGLProject.dir/src/glad.c.o"
+},
+{
+  "directory": "/home/DL2c/sandV4/build",
+  "command": "/usr/bin/c++  -I/home/DL2c/sandV4/include -std=gnu++17 -o CMakeFiles/OpenGLProject.dir/src/Renderer.cpp.o -c /home/DL2c/sandV4/src/Renderer.cpp",
+  "file": "/home/DL2c/sandV4/src/Renderer.cpp",
+  "output": "CMakeFiles/OpenGLProject.dir/src/Renderer.cpp.o"
+},
+{
+  "directory": "/home/DL2c/sandV4/build",
+  "command": "/usr/bin/c++  -I/home/DL2c/sandV4/include -std=gnu++17 -o CMakeFiles/OpenGLProject.dir/src/Simulation.cpp.o -c /home/DL2c/sandV4/src/Simulation.cpp",
+  "file": "/home/DL2c/sandV4/src/Simulation.cpp",
+  "output": "CMakeFiles/OpenGLProject.dir/src/Simulation.cpp.o"
+},
+{
+  "directory": "/home/DL2c/sandV4/build",
+  "command": "/usr/bin/c++  -I/home/DL2c/sandV4/include -std=gnu++17 -o CMakeFiles/OpenGLProject.dir/src/Movements.cpp.o -c /home/DL2c/sandV4/src/Movements.cpp",
+  "file": "/home/DL2c/sandV4/src/Movements.cpp",
+  "output": "CMakeFiles/OpenGLProject.dir/src/Movements.cpp.o"
+}
+]

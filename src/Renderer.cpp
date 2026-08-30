@@ -91,46 +91,28 @@ std::string Renderer::readFile(const char* path)
 
     return buffer.str();
 }
-GLuint Renderer::compileShader(
-    GLenum type,
-    const std::string& source)
+
+GLuint Renderer::compileShader( GLenum type, const std::string& source)
 {
     GLuint shader = glCreateShader(type);
 
     const char* src = source.c_str();
 
-    glShaderSource(
-        shader,
-        1,
-        &src,
-        nullptr
-    );
+    glShaderSource( shader, 1, &src, nullptr);
 
     glCompileShader(shader);
 
     int success;
 
-    glGetShaderiv(
-        shader,
-        GL_COMPILE_STATUS,
-        &success
-    );
+    glGetShaderiv( shader, GL_COMPILE_STATUS, &success);
 
     if (!success)
     {
         char infoLog[512];
 
-        glGetShaderInfoLog(
-            shader,
-            512,
-            nullptr,
-            infoLog
-        );
+        glGetShaderInfoLog( shader, 512, nullptr, infoLog);
 
-        std::cerr
-            << "Shader compilation failed:\n"
-            << infoLog
-            << '\n';
+        std::cerr << "Shader compilation failed:\n" << infoLog << '\n';
     }
 
     return shader;
@@ -144,55 +126,29 @@ void Renderer::createShaders()
     std::string fragmentSource =
         readFile("../shaders/fragment.glsl");
 
-    GLuint vertexShader =
-        compileShader(
-            GL_VERTEX_SHADER,
-            vertexSource
-        );
+    GLuint vertexShader = compileShader( GL_VERTEX_SHADER, vertexSource);
 
-    GLuint fragmentShader =
-        compileShader(
-            GL_FRAGMENT_SHADER,
-            fragmentSource
-        );
+    GLuint fragmentShader = compileShader( GL_FRAGMENT_SHADER, fragmentSource);
 
     shaderProgram = glCreateProgram();
 
-    glAttachShader(
-        shaderProgram,
-        vertexShader
-    );
+    glAttachShader( shaderProgram, vertexShader);
 
-    glAttachShader(
-        shaderProgram,
-        fragmentShader
-    );
+    glAttachShader( shaderProgram, fragmentShader);
 
     glLinkProgram(shaderProgram);
 
     int success;
 
-    glGetProgramiv(
-        shaderProgram,
-        GL_LINK_STATUS,
-        &success
-    );
+    glGetProgramiv( shaderProgram, GL_LINK_STATUS, &success);
 
     if (!success)
     {
         char infoLog[512];
 
-        glGetProgramInfoLog(
-            shaderProgram,
-            512,
-            nullptr,
-            infoLog
-        );
+        glGetProgramInfoLog( shaderProgram, 512, nullptr, infoLog);
 
-        std::cerr
-            << "Shader linking failed:\n"
-            << infoLog
-            << '\n';
+        std::cerr << "Shader linking failed:\n" << infoLog << '\n';
     }
 
     glDeleteShader(vertexShader);
@@ -200,17 +156,11 @@ void Renderer::createShaders()
 
     glUseProgram(shaderProgram);
 
-    int textureLocation =
-        glGetUniformLocation(
-            shaderProgram,
-            "screenTexture"
-        );
+    int textureLocation = glGetUniformLocation( shaderProgram, "screenTexture");
 
-    glUniform1i(
-        textureLocation,
-        0
-    );
+    glUniform1i( textureLocation, 0);
 }
+
 void Renderer::createQuad()
 {
     float quadVertices[] =
@@ -226,39 +176,18 @@ void Renderer::createQuad()
         -1.0f,  1.0f,       0.0f, 1.0f
     };
 
-    glGenVertexArrays(
-        1,
-        &quadVAO
-    );
+    glGenVertexArrays( 1, &quadVAO);
 
-    glGenBuffers(
-        1,
-        &quadVBO
-    );
+    glGenBuffers( 1, &quadVBO);
 
     glBindVertexArray(quadVAO);
 
-    glBindBuffer(
-        GL_ARRAY_BUFFER,
-        quadVBO
-    );
+    glBindBuffer( GL_ARRAY_BUFFER, quadVBO);
 
-    glBufferData(
-        GL_ARRAY_BUFFER,
-        sizeof(quadVertices),
-        quadVertices,
-        GL_STATIC_DRAW
-    );
+    glBufferData( GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
     // Position
-    glVertexAttribPointer(
-        0,
-        2,
-        GL_FLOAT,
-        GL_FALSE,
-        4 * sizeof(float),
-        (void*)0
-    );
+    glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 
     glEnableVertexAttribArray(0);
 
@@ -277,25 +206,16 @@ void Renderer::createQuad()
     glBindVertexArray(0);
 }
 
-void Renderer::render(
-    const std::vector<unsigned char>& pixelData)
+void Renderer::render( const std::vector<unsigned char>& pixelData)
 {
-    glClearColor(
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f
-    );
+    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f);
 
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Upload simulation pixels
     glActiveTexture(GL_TEXTURE0);
 
-    glBindTexture(
-        GL_TEXTURE_2D,
-        screenTexture
-    );
+    glBindTexture( GL_TEXTURE_2D, screenTexture);
 
     glTexSubImage2D(
         GL_TEXTURE_2D,
@@ -314,11 +234,7 @@ void Renderer::render(
 
     glBindVertexArray(quadVAO);
 
-    glDrawArrays(
-        GL_TRIANGLES,
-        0,
-        6
-    );
+    glDrawArrays( GL_TRIANGLES, 0, 6);
 
     glBindVertexArray(0);
 }

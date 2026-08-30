@@ -1,0 +1,3 @@
+/home/DL2c/sandV4/build/CMakeFiles/OpenGLProject.dir
+/home/DL2c/sandV4/build/CMakeFiles/edit_cache.dir
+/home/DL2c/sandV4/build/CMakeFiles/rebuild_cache.dir

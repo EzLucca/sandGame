@@ -11,6 +11,7 @@ class Simulation
         static constexpr int WIDTH = 800;
         static constexpr int HEIGHT = 600;
         static constexpr int PARTICLE_COUNT = 1000000;
+        int gravity = 10;
 
         Simulation();
 
@@ -47,6 +48,12 @@ class Simulation
             return activeParticles.size();
         }
 
+        void fireDies(int index);
+
+        void clearAll();
+
+        float getGravity() const;
+        void setGravity(float value);
     private:
         unsigned int randomState;
         int occupied[HEIGHT][WIDTH];
@@ -65,11 +72,7 @@ class Simulation
 
         void clearOccupied();
 
-        void setPixel(
-                int x,
-                int y,
-                const Material& material
-                );
+        void setPixel( int x, int y, const Material& material);
 
         void clearPixel(int x, int y);
 
@@ -78,22 +81,11 @@ class Simulation
 
         void wakeNeighbors(int x, int y);
 
-        bool canDisplace(
-                int particleIndex,
-                int otherIndex
-                );
+        bool canDisplace( int particleIndex, int otherIndex);
 
-        void moveParticle(
-                int index,
-                int newX,
-                int newY
-                );
+        void moveParticle( int index, int newX, int newY);
 
-        void updateParticle(
-                Particle& p,
-                int index,
-                float deltaTime
-                );
+        void updateParticle( Particle& p, int index, float deltaTime);
 
         unsigned int fastRandom();
 };

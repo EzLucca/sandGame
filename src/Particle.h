@@ -19,13 +19,13 @@ class Particle
         Particle(int startX, int startY, const Material& material);
         const Material& getMaterial() const;
 
-        void applyGravity(float gravity, float deltaTime);
+        void applyGravity(int gravity, float deltaTime);
 
-        void moveDown();
-        void moveLeft();
-        void moveRight();
-        void moveDownLeft();
-        void moveDownRight();
+        // void moveDown();
+        // void moveLeft();
+        // void moveRight();
+        // void moveDownLeft();
+        // void moveDownRight();
         void moveUp();
         void moveUpLeft();
         void moveUpRight();

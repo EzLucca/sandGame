@@ -33,30 +33,9 @@ std::string readFile(const char* path)
     return buffer.str();
 }
 
-// Compile a shader
-GLuint compileShader(GLenum type, const std::string& source)
+void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    GLuint shader = glCreateShader(type);
-
-    const char* src = source.c_str();
-
-    glShaderSource(shader, 1, &src, nullptr);
-    glCompileShader(shader);
-
-    // Check for compilation errors
-    int success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-
-    if (!success)
-    {
-        char infoLog[512];
-
-        glGetShaderInfoLog( shader, 512, nullptr, infoLog);
-
-        std::cerr << "Shader compilation failed:\n" << infoLog << '\n';
-    }
-
-    return shader;
+    glViewport(0, 0, width, height);
 }
 
 int main()
@@ -105,6 +84,7 @@ int main()
     glfwMakeContextCurrent(window);
 
 
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     // --------------------------------------------------
     // 3. Initialize GLAD
     // --------------------------------------------------
@@ -163,6 +143,21 @@ int main()
             else if (mouse.isErasePressed())
             {
                 simulation.useBrush( gridX, gridY, BRUSH_RADIUS, true);
+            }
+
+            if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
+            {
+                Movements::drawTemporaryCircle(simulation, 200, 150, 15, 0.5f);
+            }
+            if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+            {
+                simulation.setGravity(-simulation.getGravity());
+            }
+
+            // Clear all particles when 'C' key is pressed
+            if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+            {
+                simulation.clearAll();
             }
 
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
