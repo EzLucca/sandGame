@@ -7,10 +7,13 @@ if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   docker build -t "$IMAGE" .
 fi
 
+xhost +local:docker
+
 docker run --rm -it \
   --device=/dev/dri \
   -e DISPLAY="$DISPLAY" \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -v "$XAUTHORITY:/tmp/.docker.xauth:ro" \
   -v "$PWD:$PWD" \
   -w "$PWD" \
   "$IMAGE" \
@@ -18,3 +21,4 @@ docker run --rm -it \
   cmake --build build -j$(nproc) && \
   cd build && ./OpenGLProject'
 
+xhost -local:docker
