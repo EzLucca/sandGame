@@ -23,7 +23,7 @@ inline const Material sandMaterial{
     1.0f,                       // gravityValue
     true,                       // movable
     -1.0f,                      // lifetime
-    1.0f, 0.8f, 0.1f, 1.0f,     // rgba    
+    1.0f, 1.8f, 1.1f, 1.0f,     // rgba    
     false
 
 };

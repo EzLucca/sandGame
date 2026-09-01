@@ -1,4 +1,4 @@
-#include "Mouse.hpp"
+#include "Mouse.h"
 
 Mouse::Mouse(
         GLFWwindow* window,

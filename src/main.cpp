@@ -12,7 +12,7 @@
 #include "Fire.h"
 #include "Materials.h"
 #include "MaterialSelector.h"
-#include "Mouse.hpp"
+#include "Mouse.h"
 #include "Renderer.h"
 #include "Movements.h"
 #include "Simulation.h"
