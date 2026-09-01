@@ -42,8 +42,6 @@ int main()
 {
     Simulation simulation;
 
-    // simulation.clearOccupied();
-    //
     // --------------------------------------------------
     // 1. Initialize GLFW
     // --------------------------------------------------
