@@ -7,11 +7,13 @@
 
 Simulation::Simulation()
     : particles(PARTICLE_COUNT), pixelData(WIDTH * HEIGHT * 4, 0),
-    randomState(123456789), selectedMaterial(&sandMaterial) {
-        clearOccupied();
-    }
+    randomState(123456789), selectedMaterial(&sandMaterial) 
+{
+    clearOccupied();
+}
 
-void Simulation::clearOccupied() {
+void Simulation::clearOccupied() 
+{
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
             occupied[y][x] = -1;
@@ -19,7 +21,8 @@ void Simulation::clearOccupied() {
     }
 }
 
-void Simulation::setPixel(int x, int y, const Material &material) {
+void Simulation::setPixel(int x, int y, const Material &material)
+{
     if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
         return;
 
@@ -34,7 +37,8 @@ void Simulation::setPixel(int x, int y, const Material &material) {
     pixelData[index + 3] = static_cast<unsigned char>(material.a * 255.0f);
 }
 
-void Simulation::clearPixel(int x, int y) {
+void Simulation::clearPixel(int x, int y) 
+{
     if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
         return;
 
@@ -46,7 +50,8 @@ void Simulation::clearPixel(int x, int y) {
     pixelData[index + 3] = 255;
 }
 
-void Simulation::activateParticle(int index) {
+void Simulation::activateParticle(int index) 
+{
     if (index < 0 || index >= particleCount)
         return;
 
@@ -60,16 +65,20 @@ void Simulation::activateParticle(int index) {
     nextActiveParticles.push_back(index);
 }
 
-void Simulation::deactivateParticle(int index) {
+void Simulation::deactivateParticle(int index) 
+{
     if (index < 0 || index >= particleCount)
         return;
 
     particles[index].setActive(false);
 }
 
-void Simulation::wakeNeighbors(int x, int y) {
-    for (int dy = -1; dy <= 1; dy++) {
-        for (int dx = -1; dx <= 1; dx++) {
+void Simulation::wakeNeighbors(int x, int y) 
+{
+    for (int dy = -1; dy <= 1; dy++)
+    {
+        for (int dx = -1; dx <= 1; dx++)
+        {
             if (dx == 0 && dy == 0)
                 continue;
 
@@ -92,7 +101,8 @@ void Simulation::wakeNeighbors(int x, int y) {
     }
 }
 
-bool Simulation::canDisplace(int particleIndex, int otherIndex) {
+bool Simulation::canDisplace(int particleIndex, int otherIndex) 
+{
     if (otherIndex == -1)
         return true;
     // Walls / immovable particles cannot be displaced
@@ -106,7 +116,8 @@ bool Simulation::canDisplace(int particleIndex, int otherIndex) {
     return myDensity > otherDensity;
 }
 
-void Simulation::moveParticle(int index, int newX, int newY) {
+void Simulation::moveParticle(int index, int newX, int newY) 
+{
     if (index < 0 || index >= particleCount)
         return;
 
@@ -133,7 +144,8 @@ void Simulation::moveParticle(int index, int newX, int newY) {
     setPixel(newX, newY, p.getMaterial());
 }
 
-void Simulation::placeParticle(int x, int y) {
+void Simulation::placeParticle(int x, int y) 
+{
     if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
         return;
 
@@ -149,17 +161,19 @@ void Simulation::placeParticle(int x, int y) {
         // Reuse a previously removed particle slot
         newIndex = freeParticles.back();
         freeParticles.pop_back();
-    } else {
+    }
+    else
+    {
         if (particleCount >= PARTICLE_COUNT)
             return;
-
         newIndex = particleCount++;
     }
     particles[newIndex] = Particle(x, y, *selectedMaterial);
 
     // Fire
 
-    if (selectedMaterial->isFire) {
+    if (selectedMaterial->isFire)
+    {
         particles[newIndex].setVelocity(-(400.0f + fastRandom() % 150));
 
         particles[newIndex].setHorizontalVelocity(
@@ -176,7 +190,8 @@ void Simulation::placeParticle(int x, int y) {
     activateParticle(newIndex);
 }
 
-void Simulation::removeParticle(int index) {
+void Simulation::removeParticle(int index) 
+{
     if (index < 0 || index >= particleCount)
         return;
 
@@ -188,8 +203,10 @@ void Simulation::removeParticle(int index) {
     int x = p.getX();
     int y = p.getY();
 
-    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
-        if (occupied[y][x] == index) {
+    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) 
+    {
+        if (occupied[y][x] == index) 
+        {
             occupied[y][x] = -1;
             clearPixel(x, y);
             wakeNeighbors(x, y);
@@ -201,35 +218,42 @@ void Simulation::removeParticle(int index) {
     freeParticles.push_back(index);
 }
 
-void Simulation::useBrush(int centerX, int centerY, int radius, bool erase) {
-    for (int dx = -radius; dx <= radius; dx++) {
-        for (int dy = -radius; dy <= radius; dy++) {
-            if (dx * dx + dy * dy > radius * radius) {
+void Simulation::useBrush(int centerX, int centerY, int radius, bool erase) 
+{
+    for (int dx = -radius; dx <= radius; dx++) 
+    {
+        for (int dy = -radius; dy <= radius; dy++) 
+        {
+            if (dx * dx + dy * dy > radius * radius) 
+            {
                 continue;
             }
 
             int x = centerX + dx;
             int y = centerY + dy;
 
-            if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) {
+            if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
+            {
                 continue;
             }
 
-            if (erase) {
+            if (erase)
+            {
                 int index = occupied[y][x];
 
-                if (index != -1) {
+                if (index != -1) 
                     removeParticle(index);
-                }
-            } else {
-                placeParticle(x, y);
             }
+            else 
+                placeParticle(x, y);
         }
     }
 }
 
-void Simulation::update(float deltaTime) {
-    for (int particleIndex : activeParticles) {
+void Simulation::update(float deltaTime)
+{
+    for (int particleIndex : activeParticles) 
+    {
         if (particleIndex < 0 || particleIndex >= particleCount)
             continue;
 
@@ -242,14 +266,17 @@ void Simulation::update(float deltaTime) {
 
         p.updateLifetime(deltaTime);
 
-        if (p.isDead()) {
-            removeParticle(particleIndex);
+        if (p.isDead())
+        {
+            if(p.getMaterial().type == MaterialType::Fire)
+                fireDies(particleIndex);
+            else
+                removeParticle(particleIndex);
             continue;
         }
 
-        if (p.hasLifetime()) {
+        if (p.hasLifetime()) 
             activateParticle(particleIndex);
-        }
 
         if (!p.isMovable())
             continue;
@@ -261,14 +288,14 @@ void Simulation::update(float deltaTime) {
     nextActiveParticles.clear();
 }
 
-void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
+void Simulation::updateParticle(Particle &p, int index, float deltaTime) 
+{
     // -----------------------------------------
     // Gravity
     // -----------------------------------------
 
-    if (p.isAffectedByGravity()) {
+    if (p.isAffectedByGravity()) 
         p.applyGravity(getGravity() * p.getMaterial().gravityValue, deltaTime);
-    }
 
     // -----------------------------------------
     // Calculate vertical movement
@@ -292,7 +319,8 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
 
     bool blocked = false;
 
-    for (int step = 0; step < steps; step++) {
+    for (int step = 0; step < steps; step++) 
+    {
         int x = p.getX();
         int y = p.getY();
 
@@ -302,9 +330,11 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
         // Outside screen
         // -------------------------------------
 
-        if (nextY < 0 || nextY >= HEIGHT) {
-            if (p.getMaterial().isFire) {
-                removeParticle(index);
+        if (nextY < 0 || nextY >= HEIGHT) 
+        {
+            if (p.getMaterial().isFire) 
+            {
+                fireDies(index);
                 return;
             }
 
@@ -319,21 +349,26 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
 
         int otherIndex = occupied[nextY][x];
 
-        if (p.getMaterial().isFire && otherIndex != -1 &&
-                &particles[otherIndex].getMaterial() == &smokeMaterial) {
+        if (p.getMaterial().type == MaterialType::Fire &&
+                otherIndex != -1 &&
+                particles[otherIndex].getMaterial().type == MaterialType::Smoke)
+        {
             fireDies(index);
             return;
         }
 
-        if (canDisplace(index, otherIndex)) {
+        if (canDisplace(index, otherIndex))
+        {
             occupied[y][x] = otherIndex;
 
-            if (otherIndex != -1) {
+            if (otherIndex != -1) 
+            {
                 particles[otherIndex].setPosition(x, y);
                 activateParticle(otherIndex);
 
                 setPixel(x, y, particles[otherIndex].getMaterial());
-            } else {
+            }
+            else {
                 clearPixel(x, y);
                 wakeNeighbors(x, y);
             }
@@ -357,32 +392,34 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
 
         int firstDirection = (fastRandom() & 1) ? -1 : 1;
 
-        for (int attempt = 0; attempt < 2; attempt++) {
+        for (int attempt = 0; attempt < 2; attempt++) 
+        {
             int nextX = x + firstDirection;
 
-            if (nextX >= 0 && nextX < WIDTH) {
+            if (nextX >= 0 && nextX < WIDTH) 
+            {
                 int diagonalIndex = occupied[nextY][nextX];
 
-                if (canDisplace(index, diagonalIndex)) {
+                if (canDisplace(index, diagonalIndex)) 
+                {
                     occupied[y][x] = diagonalIndex;
 
-                    if (diagonalIndex != -1) {
+                    if (diagonalIndex != -1) 
+                    {
                         particles[diagonalIndex].setPosition(x, y);
 
                         activateParticle(diagonalIndex);
 
                         setPixel(x, y, particles[diagonalIndex].getMaterial());
-                    } else {
+                    }
+                    else {
                         clearPixel(x, y);
                         wakeNeighbors(x, y);
                     }
 
                     p.setPosition(nextX, nextY);
-
                     activateParticle(index);
-
                     setPixel(nextX, nextY, p.getMaterial());
-
                     occupied[nextY][nextX] = index;
 
                     moved = true;
@@ -392,7 +429,8 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
             firstDirection *= -1;
         }
 
-        if (moved) {
+        if (moved) 
+        {
             activateParticle(index);
             continue;
         }
@@ -425,15 +463,18 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
         // Randomize initial direction to keep fluid level flat
         bool checkLeftFirst = (fastRandom() & 1) != 0;
 
-        for (int distance = 1; distance <= maxSpread; distance++) {
-            auto trySide = [&](int dist, int dir, bool &isBlocked) -> bool {
+        for (int distance = 1; distance <= maxSpread; distance++) 
+        {
+            auto trySide = [&](int dist, int dir, bool &isBlocked) -> bool 
+            {
                 if (isBlocked)
                     return false;
 
                 int targetX = currentX + (dist * dir);
 
                 // 1. Boundary Check
-                if (targetX < 0 || targetX >= WIDTH) {
+                if (targetX < 0 || targetX >= WIDTH) 
+                {
                     isBlocked = true;
                     return false;
                 }
@@ -441,7 +482,8 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
                 int otherIdx = occupied[y][targetX];
 
                 // 2. Target cell is Empty Air -> Move into it!
-                if (otherIdx == -1) {
+                if (otherIdx == -1)
+                {
                     occupied[y][currentX] = -1;
                     clearPixel(currentX, y);
                     wakeNeighbors(currentX, y);
@@ -456,7 +498,8 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
 
                 // 3. Target cell has an immovable solid (Stone) -> Stop scanning this
                 // side!
-                if (!particles[otherIdx].isMovable()) {
+                if (!particles[otherIdx].isMovable())
+                {
                     isBlocked = true;
                     return false;
                 }
@@ -467,34 +510,38 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime) {
                 return false;
             };
 
-            if (checkLeftFirst) {
+            if (checkLeftFirst)
+            {
                 if (trySide(distance, -1, leftBlocked))
                     break;
                 if (trySide(distance, 1, rightBlocked))
                     break;
-            } else {
+            }
+            else {
                 if (trySide(distance, 1, rightBlocked))
                     break;
                 if (trySide(distance, -1, leftBlocked))
                     break;
             }
 
-            if (leftBlocked && rightBlocked) {
+            if (leftBlocked && rightBlocked)
+            {
                 break;
             }
         }
     }
 }
 
-unsigned int Simulation::fastRandom() {
+unsigned int Simulation::fastRandom() 
+{
     randomState ^= randomState << 13;
     randomState ^= randomState >> 17;
     randomState ^= randomState << 5;
-
     return randomState;
 }
 
-void Simulation::fireDies(int index) {
+void Simulation::fireDies(int index) 
+{
     if (index < 0 || index >= particleCount)
         return;
 
@@ -507,7 +554,8 @@ void Simulation::fireDies(int index) {
         return;
 
     // Remove the fire from the grid
-    if (occupied[y][x] == index) {
+    if (occupied[y][x] == index) 
+    {
         occupied[y][x] = -1;
         clearPixel(x, y);
     }
@@ -517,20 +565,24 @@ void Simulation::fireDies(int index) {
 
     freeParticles.push_back(index);
 
-    // Create smoke in the same location
+    const Material* previousMaterial = selectedMaterial;
+
     selectedMaterial = &smokeMaterial;
     placeParticle(x, y);
+
+    // Restore player's selected material
+    selectedMaterial = previousMaterial;
 }
 
-void Simulation::clearAll() {
+void Simulation::clearAll() 
+{
     // 1. Reset grid indices
     clearOccupied();
 
     // 2. Clear RGBA pixel data back to black (opaque)
     std::fill(pixelData.begin(), pixelData.end(), 0);
-    for (size_t i = 3; i < pixelData.size(); i += 4) {
+    for (size_t i = 3; i < pixelData.size(); i += 4)
         pixelData[i] = 255; // Set Alpha to 255
-    }
 
     // 3. Clear active tracking arrays
     activeParticles.clear();
@@ -538,7 +590,8 @@ void Simulation::clearAll() {
     freeParticles.clear();
 
     // 4. Reset particle states
-    for (int i = 0; i < PARTICLE_COUNT; i++) {
+    for (int i = 0; i < PARTICLE_COUNT; i++) 
+    {
         particles[i] = Particle();
         particles[i].setPosition(-1, -1);
         particles[i].setActive(false);
@@ -557,4 +610,3 @@ void    Simulation::setGravity(float value)
 {
     gravity = value;
 }
-

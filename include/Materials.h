@@ -2,6 +2,7 @@
 #include "Material.h"
 
 inline const Material fireMaterial{
+    MaterialType::Fire,         // type
     0.0f,                       // viscosity
     1.0f,                       // density
     1.0f,                       // spread
@@ -15,6 +16,7 @@ inline const Material fireMaterial{
 };
 
 inline const Material sandMaterial{
+    MaterialType::Sand,         // type
     0.8f,                       // viscosity
     1.5f,                       // density
     0.0f,                       // spread
@@ -29,6 +31,7 @@ inline const Material sandMaterial{
 };
 
 inline const Material stoneMaterial{
+    MaterialType::Stone,         // type
     0.0f,                       // viscosity
     10.0f,                       // density
     0.0f,                       // spread
@@ -42,6 +45,7 @@ inline const Material stoneMaterial{
 };
 
 inline const Material waterMaterial{
+    MaterialType::Water,         // type
     0.0f,                       // viscosity
     1.0f,                       // density
     2.0f,                       // spread
@@ -55,6 +59,7 @@ inline const Material waterMaterial{
 };
 
 inline const Material smokeMaterial{
+    MaterialType::Smoke,         // type
     0.8f,                       // viscosity
     0.1f,                       // density
     2.5f,                       // spread

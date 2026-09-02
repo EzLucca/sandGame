@@ -1,7 +1,17 @@
 #pragma once
 
+enum class MaterialType
+{
+    Sand,
+    Stone,
+    Water,
+    Fire,
+    Smoke
+};
+
 struct Material
 {
+    MaterialType type;
     float viscosity;
     float density;
     float spread;

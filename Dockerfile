@@ -29,7 +29,13 @@ WORKDIR /src
 
 COPY . .
 
-RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON 
+RUN cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_CXX_FLAGS="-pg" \
+    -DCMAKE_EXE_LINKER_FLAGS="-pg" \
+    -DCMAKE_C_COMPILER=/usr/bin/gcc \
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON 
 RUN cmake --build build -j$(nproc)
 
 

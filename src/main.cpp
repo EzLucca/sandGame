@@ -38,13 +38,20 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
+{
+    Mouse* mouse =
+        static_cast<Mouse*>(glfwGetWindowUserPointer(window));
+
+    if (mouse)
+        mouse->scroll(yOffset);
+}
+
 int main()
 {
     Simulation simulation;
 
-    // --------------------------------------------------
-    // 1. Initialize GLFW
-    // --------------------------------------------------
+    // ----- Initialize GLFW -----
 
     if (!glfwInit())
     {
@@ -56,10 +63,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-
-    // --------------------------------------------------
-    // 2. Create window
-    // --------------------------------------------------
+    // ----- Create window -----
 
     GLFWwindow* window = glfwCreateWindow(
             Simulation::WIDTH,
@@ -76,16 +80,18 @@ int main()
         return -1;
     }
 
+    // ----- setting mouse -----
+
     Mouse mouse( window, Simulation::WIDTH, Simulation::HEIGHT);
+    glfwSetWindowUserPointer(window, &mouse);
+    glfwSetScrollCallback(window, scroll_callback);
+
     MaterialSelector materialSelector(window);
 
     glfwMakeContextCurrent(window);
-
-
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
-    // --------------------------------------------------
-    // 3. Initialize GLAD
-    // --------------------------------------------------
+
+    // ----- Initialize GLAD -----
 
     if (!gladLoadGLLoader( (GLADloadproc)glfwGetProcAddress))
     {
@@ -96,96 +102,64 @@ int main()
     {
         Renderer renderer(Simulation::WIDTH, Simulation::HEIGHT);
 
-        // --------------------------------------------------
-        // Particle arrays
-        // --------------------------------------------------
+        // ----- Particle arrays -----
 
         float lastTime = glfwGetTime();
         double fpsTimer = glfwGetTime();
         int frameCount = 0;
 
-        // --------------------------------------------------
-        // 10. Main loop
-        // --------------------------------------------------
+        // ----- Main loop -----
 
         while (!glfwWindowShouldClose(window))
         {
-            // ---------------------------------------------
-            // Material selection
-            // ---------------------------------------------
+            // ----- Material selection -----
 
             const Material* newMaterial = materialSelector.update();
 
             if (newMaterial != nullptr)
-            {
-                // selectedMaterial = newMaterial;
                 simulation.setSelectedMaterial(newMaterial);
-            }
 
-            // ---------------------------------------------
-            // Mouse
-            // ---------------------------------------------
+            // ----- Mouse -----
+
             mouse.update();
 
             int gridX = mouse.getX();
             int gridY = mouse.getY();
 
-            constexpr int BRUSH_RADIUS = 8;
-
-
             if (mouse.isLeftPressed())
-            {
-                simulation.useBrush( gridX, gridY, BRUSH_RADIUS, false);
-            }
+                simulation.useBrush( gridX, gridY, mouse.getBrushRadius(), false);
 
             else if (mouse.isErasePressed())
-            {
-                simulation.useBrush( gridX, gridY, BRUSH_RADIUS, true);
-            }
+                simulation.useBrush( gridX, gridY, mouse.getBrushRadius(), true);
 
             if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
-            {
                 Movements::drawTemporaryCircle(simulation, 200, 150, 15, 0.5f);
-            }
+
             if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-            {
                 simulation.setGravity(-simulation.getGravity());
-            }
 
             // Clear all particles when 'C' key is pressed
             if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-            {
                 simulation.clearAll();
-            }
 
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            {
                 break;
-            }
 
-            // ---------------------------------------------
-            // Time
-            // ---------------------------------------------
+            // ----- Time -----
 
             float currentTime = glfwGetTime();
             float deltaTime = currentTime - lastTime;
             lastTime = currentTime;
 
-            // ---------------------------------------------
-            // Simulation
-            // ---------------------------------------------
+            // ----- Simulation -----
 
             simulation.update(deltaTime);
 
-            // ---------------------------------------------
-            // Upload pixel buffer to texture
-            // ---------------------------------------------
+            // ----- Upload pixel buffer to texture -----
             renderer.render(simulation.getPixelData());
             glfwSwapBuffers(window);
 
-            // ---------------------------------------------
-            // update title 
-            // ---------------------------------------------
+            // ----- update title -----
 
             frameCount++;
 

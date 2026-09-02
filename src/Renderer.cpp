@@ -120,11 +120,9 @@ GLuint Renderer::compileShader( GLenum type, const std::string& source)
 
 void Renderer::createShaders()
 {
-    std::string vertexSource =
-        readFile("../shaders/vertex.glsl");
+    std::string vertexSource = readFile("../shaders/vertex.glsl");
 
-    std::string fragmentSource =
-        readFile("../shaders/fragment.glsl");
+    std::string fragmentSource = readFile("../shaders/fragment.glsl");
 
     GLuint vertexShader = compileShader( GL_VERTEX_SHADER, vertexSource);
 

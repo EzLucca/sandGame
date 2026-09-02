@@ -10,7 +10,7 @@ class Simulation
     public:
         static constexpr int WIDTH = 800;
         static constexpr int HEIGHT = 600;
-        static constexpr int PARTICLE_COUNT = 1000000;
+        static constexpr int PARTICLE_COUNT = 10000000;
         int gravity = 10;
 
         Simulation();

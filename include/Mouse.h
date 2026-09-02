@@ -4,26 +4,31 @@
 
 class Mouse
 {
-public:
-    Mouse(GLFWwindow* window, int width, int height);
+    private:
+        GLFWwindow* window;
 
-    void update();
+        int width;
+        int height;
 
-    int getX() const;
-    int getY() const;
+        int x;
+        int y;
+        int brush_radius = 8;
 
-    bool isLeftPressed() const;
-    bool isErasePressed() const;
+        bool leftPressed;
+        bool erasePressed;
 
-private:
-    GLFWwindow* window;
+    public:
+        Mouse(GLFWwindow* window, int width, int height);
 
-    int width;
-    int height;
+        void update();
 
-    int x;
-    int y;
+        int getX() const;
+        int getY() const;
 
-    bool leftPressed;
-    bool erasePressed;
+        bool isLeftPressed() const;
+        bool isErasePressed() const;
+
+        int getBrushRadius() const;
+        void setBrushRadius(int radius);
+        void scroll(float yoffset);
 };
