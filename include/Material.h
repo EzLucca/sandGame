@@ -6,7 +6,9 @@ enum class MaterialType
     Stone,
     Water,
     Fire,
-    Smoke
+    Smoke,
+    WhiteBomb,
+    RedBomb
 };
 
 struct Material

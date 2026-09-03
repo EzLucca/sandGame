@@ -20,13 +20,7 @@ class Simulation
         void placeParticle(int x, int y);
         void removeParticle(int index);
 
-        void useBrush(
-                int centerX,
-                int centerY,
-                int radius,
-                bool erase
-                );
-
+        void useBrush( int centerX, int centerY, int radius, bool erase);
 
         void setSelectedMaterial(const Material* material)
         {
@@ -54,6 +48,9 @@ class Simulation
 
         float getGravity() const;
         void setGravity(float value);
+        void setPixel( int x, int y, const Material& material);
+        void clearPixel(int x, int y);
+        void addParticle( int x, int y, const Material& material);
     private:
         unsigned int randomState;
         int occupied[HEIGHT][WIDTH];
@@ -71,10 +68,6 @@ class Simulation
         const Material* selectedMaterial = &sandMaterial;
 
         void clearOccupied();
-
-        void setPixel( int x, int y, const Material& material);
-
-        void clearPixel(int x, int y);
 
         void activateParticle(int index);
         void deactivateParticle(int index);

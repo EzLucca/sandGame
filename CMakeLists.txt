@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(ENABLE_PROFILING "Enable gprof profiling" OFF)
+
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
@@ -36,3 +38,8 @@ target_link_libraries(OpenGLProject
     glfw
     glm::glm
 )
+
+if(ENABLE_PROFILING)
+    target_compile_options(OpenGLProject PRIVATE -pg)
+    target_link_options(OpenGLProject PRIVATE -pg)
+endif()

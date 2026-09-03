@@ -42,10 +42,27 @@ RUN cmake --build build -j$(nproc)
 # ==========================
 # Runtime
 # ==========================
+# FROM ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517 AS runtime
+#
+# RUN apt-get update && apt-get install --no-install-recommends -y \
+#     libglfw3 \
+#     && rm -rf /var/lib/apt/lists/*
+#
+# WORKDIR /app/build
+#
+# COPY --from=builder /src/build/OpenGLProject .
+# COPY --from=builder /src/shaders ../shaders
+#
+# ENTRYPOINT ["./OpenGLProject"]
+
+# ==========================
+# Runtime
+# ==========================
 FROM ubuntu:24.04@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517 AS runtime
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     libglfw3 \
+    binutils \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app/build
@@ -53,5 +70,8 @@ WORKDIR /app/build
 COPY --from=builder /src/build/OpenGLProject .
 COPY --from=builder /src/shaders ../shaders
 
-ENTRYPOINT ["./OpenGLProject"]
+# Profiling script
+COPY profile.sh /app/profile.sh
+RUN chmod +x /app/profile.sh
 
+ENTRYPOINT ["/app/profile.sh"]

@@ -133,7 +133,13 @@ int main()
                 simulation.useBrush( gridX, gridY, mouse.getBrushRadius(), true);
 
             if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
-                Movements::drawTemporaryCircle(simulation, 200, 150, 15, 0.5f);
+            {
+                Movements::triggerExplosion(simulation,
+                        gridX, gridY,
+                        mouse.getBrushRadius()
+                        );
+                Movements::updateExplosion(simulation);
+            }
 
             if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
                 simulation.setGravity(-simulation.getGravity());

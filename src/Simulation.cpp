@@ -105,12 +105,12 @@ bool Simulation::canDisplace(int particleIndex, int otherIndex)
 {
     if (otherIndex == -1)
         return true;
-    // Walls / immovable particles cannot be displaced
+
+    // ----- Walls / immovable particles cannot be displaced -----
     if (!particles[otherIndex].isMovable())
         return false;
 
     float myDensity = particles[particleIndex].getMaterial().density;
-
     float otherDensity = particles[otherIndex].getMaterial().density;
 
     return myDensity > otherDensity;
@@ -166,11 +166,12 @@ void Simulation::placeParticle(int x, int y)
     {
         if (particleCount >= PARTICLE_COUNT)
             return;
+
         newIndex = particleCount++;
     }
     particles[newIndex] = Particle(x, y, *selectedMaterial);
 
-    // Fire
+    // ----- Fire -----
 
     if (selectedMaterial->isFire)
     {
@@ -290,16 +291,12 @@ void Simulation::update(float deltaTime)
 
 void Simulation::updateParticle(Particle &p, int index, float deltaTime) 
 {
-    // -----------------------------------------
-    // Gravity
-    // -----------------------------------------
+    // ----- Gravity -----
 
     if (p.isAffectedByGravity()) 
         p.applyGravity(getGravity() * p.getMaterial().gravityValue, deltaTime);
 
-    // -----------------------------------------
-    // Calculate vertical movement
-    // -----------------------------------------
+    //  ----- Calculate vertical movement -----
 
     float movement = p.getVelocity() * deltaTime;
 
@@ -313,9 +310,7 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime)
     else
         direction = - p.getMaterial().dir;
 
-    // -----------------------------------------
-    // Vertical + diagonal movement
-    // -----------------------------------------
+    // ----- Vertical + diagonal movement -----
 
     bool blocked = false;
 
@@ -326,9 +321,7 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime)
 
         int nextY = y + direction;
 
-        // -------------------------------------
-        // Outside screen
-        // -------------------------------------
+        // ----- Outside screen -----
 
         if (nextY < 0 || nextY >= HEIGHT) 
         {
@@ -343,12 +336,11 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime)
             break;
         }
 
-        // -------------------------------------
-        // Vertical movement
-        // -------------------------------------
+        // ----- Vertical movement -----
 
         int otherIndex = occupied[nextY][x];
 
+        // ----- Turn fire into smoke on contact -----
         if (p.getMaterial().type == MaterialType::Fire &&
                 otherIndex != -1 &&
                 particles[otherIndex].getMaterial().type == MaterialType::Smoke)
@@ -357,6 +349,7 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime)
             return;
         }
 
+        // ----- Check if the particle above or below can be displaced -----
         if (canDisplace(index, otherIndex))
         {
             occupied[y][x] = otherIndex;
@@ -609,4 +602,42 @@ float Simulation::getGravity() const
 void    Simulation::setGravity(float value) 
 {
     gravity = value;
+}
+
+void Simulation::addParticle(
+    int x,
+    int y,
+    const Material& material)
+{
+    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
+        return;
+
+    if (occupied[y][x] != -1)
+        return;
+
+    int newIndex;
+
+    if (!freeParticles.empty())
+    {
+        // Reuse an old particle slot
+        newIndex = freeParticles.back();
+        freeParticles.pop_back();
+    }
+    else
+    {
+        if (particleCount >= PARTICLE_COUNT)
+            return;
+
+        newIndex = particleCount++;
+    }
+
+    particles[newIndex] = Particle(x, y, material);
+
+    occupied[y][x] = newIndex;
+
+    // Draw it immediately
+    setPixel(x, y, material);
+
+    // Make it part of the active particle list
+    activateParticle(newIndex);
 }

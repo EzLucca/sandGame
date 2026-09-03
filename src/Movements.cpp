@@ -3,44 +3,121 @@
 
 #include <algorithm>
 #include <cmath>
+#include <chrono>
 
 #include "Movements.h"
 #include "Material.h"
 
-namespace Movements {
-    void drawTemporaryCircle(Simulation& simulation, int centerX, int centerY, int radius, float durationSeconds)
-    {
-        Material whiteEffect;
-        whiteEffect.r = 1.0f;
-        whiteEffect.g = 1.0f;
-        whiteEffect.b = 1.0f;
-        whiteEffect.a = 1.0f;
-        whiteEffect.movable = false;
-        whiteEffect.affectedByGravity = false;
-        whiteEffect.spread = 0.0f;
-        whiteEffect.lifetime = durationSeconds;
-        whiteEffect.isFire = false;
+enum class ExplosionStage
+{
+    None,
+    White,
+    Red
+};
 
-        // Note: If you need to temporarily override the selected material, 
-        // you can add a public helper in Simulation or use public methods.
-        // Alternatively, add a Simulation method like `simulation.spawnCustomParticle(x, y, whiteEffect);`
-        
-        for (int dy = -radius; dy <= radius; dy++)
+namespace Movements
+{
+    void drawTemporaryCircle(
+            Simulation& simulation,
+            int centerX,
+            int centerY,
+            int radius,
+            const Material& material)
+    {
+        for (int dy = -radius; dy <= radius; ++dy)
         {
-            for (int dx = -radius; dx <= radius; dx++)
+            for (int dx = -radius; dx <= radius; ++dx)
             {
                 if (dx * dx + dy * dy <= radius * radius)
                 {
                     int x = centerX + dx;
                     int y = centerY + dy;
 
-                    if (x >= 0 && x < Simulation::WIDTH && y >= 0 && y < Simulation::HEIGHT)
+                    if (x >= 0 && x < Simulation::WIDTH &&
+                            y >= 0 && y < Simulation::HEIGHT)
                     {
-                        // Call your simulation methods here using the reference
-                        // simulation.placeParticle(x, y); 
+                        simulation.addParticle(x, y, material);
                     }
                 }
             }
         }
     }
-}
+
+struct Explosion
+    {
+        bool active = false;
+
+        int x = 0;
+        int y = 0;
+        int radius = 0;
+
+        ExplosionStage stage = ExplosionStage::None;
+
+        std::chrono::steady_clock::time_point startTime;
+    };
+
+    static Explosion explosion;
+
+    void triggerExplosion(
+        Simulation& simulation,
+        int x,
+        int y,
+        int radius)
+    {
+        // Don't restart an existing explosion
+        if (explosion.active)
+            return;
+
+        explosion.active = true;
+        explosion.x = x;
+        explosion.y = y;
+        explosion.radius = radius;
+        explosion.stage = ExplosionStage::White;
+        explosion.startTime = std::chrono::steady_clock::now();
+
+        drawTemporaryCircle(
+            simulation,
+            x,
+            y,
+            radius,
+            whiteBombMaterial
+        );
+    }
+
+    void updateExplosion(Simulation& simulation)
+    {
+        if (!explosion.active)
+            return;
+
+        float elapsed =
+            std::chrono::duration<float>(
+                std::chrono::steady_clock::now()
+                - explosion.startTime
+            ).count();
+
+        // White stage finished
+        if (explosion.stage == ExplosionStage::White &&
+            elapsed >= whiteBombMaterial.lifetime)
+        {
+            explosion.stage = ExplosionStage::Red;
+
+            drawTemporaryCircle(
+                simulation,
+                explosion.x,
+                explosion.y,
+                explosion.radius,
+                redBombMaterial
+            );
+        }
+
+        // Red stage finished
+        if (explosion.stage == ExplosionStage::Red &&
+            elapsed >=
+                whiteBombMaterial.lifetime +
+                redBombMaterial.lifetime)
+        {
+            explosion.stage = ExplosionStage::None;
+            explosion.active = false;
+        }
+    }}
+
