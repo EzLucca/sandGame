@@ -193,7 +193,7 @@ void Simulation::placeParticle(int x, int y)
 
 void Simulation::removeParticle(int index) 
 {
-    if (index < 0 || index >= particleCount)
+    if (index < 0 || index >= static_cast<int>(particles.size()))
         return;
 
     Particle &p = particles[index];
@@ -217,6 +217,7 @@ void Simulation::removeParticle(int index)
     p.setActive(false);
     p.setPosition(-1, -1);
     freeParticles.push_back(index);
+    // --particleCount;
 }
 
 void Simulation::useBrush(int centerX, int centerY, int radius, bool erase) 
@@ -272,7 +273,9 @@ void Simulation::update(float deltaTime)
             if(p.getMaterial().type == MaterialType::Fire)
                 fireDies(particleIndex);
             else
+            {
                 removeParticle(particleIndex);
+            }
             continue;
         }
 
@@ -605,9 +608,9 @@ void    Simulation::setGravity(float value)
 }
 
 void Simulation::addParticle(
-    int x,
-    int y,
-    const Material& material)
+        int x,
+        int y,
+        const Material& material)
 {
     if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
         return;
@@ -641,3 +644,50 @@ void Simulation::addParticle(
     // Make it part of the active particle list
     activateParticle(newIndex);
 }
+
+void Simulation::removeParticlesInRadius( int centerX, int centerY, int radius)
+{
+    int radiusSquared = radius * radius;
+
+    std::vector<int> toRemove;
+
+    for (int y = centerY - radius; y <= centerY + radius; ++y)
+    {
+        if (y < 0 || y >= HEIGHT)
+            continue;
+
+        for (int x = centerX - radius; x <= centerX + radius; ++x)
+        {
+            if (x < 0 || x >= WIDTH)
+                continue;
+
+            int dx = x - centerX;
+            int dy = y - centerY;
+
+            if (dx * dx + dy * dy > radiusSquared)
+                continue;
+
+            int index = occupied[y][x];
+
+            if (index != -1)
+            {
+                toRemove.push_back(index);
+            }
+        }
+    }
+
+    // Remove after we've finished scanning the grid
+    for (int index : toRemove)
+    {
+        removeParticle(index);
+    }
+}
+
+bool Simulation::isOccupied(int x, int y) const
+{
+    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
+        return false;
+
+    return occupied[y][x] != -1;
+}
+

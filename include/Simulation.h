@@ -51,6 +51,10 @@ class Simulation
         void setPixel( int x, int y, const Material& material);
         void clearPixel(int x, int y);
         void addParticle( int x, int y, const Material& material);
+        void removeParticlesInRadius( int centerX, int centerY, int radius);
+
+        bool isOccupied(int x, int y) const;
+
     private:
         unsigned int randomState;
         int occupied[HEIGHT][WIDTH];

@@ -134,11 +134,13 @@ int main()
 
             if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
             {
-                Movements::triggerExplosion(simulation,
-                        gridX, gridY,
-                        mouse.getBrushRadius()
-                        );
-                Movements::updateExplosion(simulation);
+                Movements::triggerExplosion(simulation, gridX, gridY,
+                        mouse.getBrushRadius());
+            }
+
+            if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
+            {
+                Movements::launchParticle( simulation, gridX, gridY);
             }
 
             if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
@@ -160,9 +162,47 @@ int main()
             // ----- Simulation -----
 
             simulation.update(deltaTime);
+            Movements::updateLaunch( simulation, deltaTime);
+            Movements::updateExplosion(simulation);
+            renderer.render(simulation.getPixelData());
+
+            // ----- Lauch -----
+            if (Movements::isLaunchActive())
+            {
+                renderer.drawCircle(
+                        Movements::getLaunchX(),
+                        Movements::getLaunchY(),
+                        4,
+                        1.0f,
+                        1.0f,
+                        1.0f
+                        );
+            }
+
+            // ----- Draw explosion -----
+            if (Movements::isExplosionActive())
+            {
+                if (Movements::getExplosionStage() == ExplosionStage::White)
+                {
+                    renderer.drawCircle(
+                            Movements::getExplosionX(),
+                            Movements::getExplosionY(),
+                            Movements::getExplosionRadius(),
+                            1.0f, 1.0f, 1.0f
+                            );
+                }
+                else if (Movements::getExplosionStage() == ExplosionStage::Red)
+                {
+                    renderer.drawCircle(
+                            Movements::getExplosionX(),
+                            Movements::getExplosionY(),
+                            Movements::getExplosionRadius(),
+                            1.0f, 0.0f, 0.0f
+                            );
+                }
+            }
 
             // ----- Upload pixel buffer to texture -----
-            renderer.render(simulation.getPixelData());
             glfwSwapBuffers(window);
 
             // ----- update title -----
@@ -173,7 +213,8 @@ int main()
 
             if (currentFPS - fpsTimer >= 0.5)
             {
-                double fps = frameCount / (currentFPS - fpsTimer);
+                double elapsed = currentFPS - fpsTimer;
+                double fps = frameCount / elapsed;
 
                 std::string title = "Pixel simulation | Particles: " +
                     std::to_string(simulation.getParticleCount()) + " | Moving: " +
@@ -191,4 +232,5 @@ int main()
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
+
 }

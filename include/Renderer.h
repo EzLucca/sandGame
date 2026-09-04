@@ -13,6 +13,7 @@ class Renderer
         ~Renderer();
 
         void render( const std::vector<unsigned char>& pixelData);
+        void drawCircle(int centerX, int centerY, int radius, float r, float g, float b);
 
     private:
 
@@ -26,9 +27,15 @@ class Renderer
         GLuint quadVAO = 0;
         GLuint quadVBO = 0;
 
+        // Explosion circle
+        GLuint circleShaderProgram = 0;
+        GLuint circleVAO = 0;
+        GLuint circleVBO = 0;
+
         void createTexture();
         void createQuad();
         void createShaders();
+        void createCircle();
 
         std::string readFile(const char* path);
 

@@ -81,7 +81,7 @@ inline const Material whiteBombMaterial{
     0,                          // vertical diretion
     0.0f,                       // gravityValue
     false,                       // movable
-    0.1f,                      // lifetime
+    0.01f,                      // lifetime
     1.0f, 1.0f, 1.0f, 1.0f,     // rgba
     false                       // isfire
 };
@@ -95,7 +95,7 @@ inline const Material redBombMaterial{
     0,                          // vertical diretion
     0.0f,                       // gravityValue
     false,                       // movable
-    0.2f,                      // lifetime
+    0.1f,                      // lifetime
     1.0f, 0.0f, 0.0f, 1.0f,     // rgba
     false                       // isfire
 };
