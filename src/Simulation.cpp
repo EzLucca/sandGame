@@ -333,6 +333,7 @@ void Simulation::update(float deltaTime)
 
         p.updateLifetime(deltaTime);
 
+        // the particles that are not redrawn or waked up are not checked 
         if (p.isDead())
         {
             if(p.getMaterial().type == MaterialType::Fire)
@@ -372,11 +373,31 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime)
 
     // steps = std::clamp(steps, 1, 4);
 
+    bool blocked = false;
     int direction = 
         gravity > 0
         ? p.getMaterial().dir
         : -p.getMaterial().dir;
 
+    int x = p.getX();
+    int y = p.getY();
+
+    int nextY = y + direction;
+
+    // ----- Outside screen -----
+
+    if (nextY < 0 || nextY >= HEIGHT) 
+    {
+        if (p.getMaterial().isFire) 
+        {
+            fireDies(index);
+            return;
+        }
+
+        p.stop();
+        blocked = true;
+        // break;
+    }
     moveVertical(p, index, direction);
 }
 // ----- Vertical + diagonal movement -----
