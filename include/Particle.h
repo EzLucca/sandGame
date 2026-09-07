@@ -12,6 +12,7 @@ class Particle
         float lifetime = -1.0f;
         Material material;
         bool active = false;
+        bool scheduled = false;
         int activeIndex = -1;
 
     public:
@@ -55,5 +56,7 @@ class Particle
         bool isActive() const;
         int getActiveIndex() const;
         void setActiveIndex(int index);
+        void setScheduled(bool value);
+        bool isScheduled() const;
 };
 

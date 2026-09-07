@@ -198,3 +198,14 @@ void Particle::setActiveIndex(int index)
 {
     activeIndex = index;
 }
+
+bool Particle::isScheduled() const
+{
+    return scheduled;
+}
+
+void Particle::setScheduled(bool value)
+{
+    scheduled = value;
+}
+

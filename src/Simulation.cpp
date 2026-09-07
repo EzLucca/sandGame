@@ -73,33 +73,70 @@ void Simulation::deactivateParticle(int index)
     particles[index].setActive(false);
 }
 
-void Simulation::wakeNeighbors(int x, int y) 
+// void Simulation::wakeNeighbors(int x, int y) 
+// {
+//     for (int dy = -1; dy <= 1; dy++)
+//     {
+//         for (int dx = -1; dx <= 1; dx++)
+//         {
+//             if (dx == 0 && dy == 0)
+//                 continue;
+//
+//             int nx = x + dx;
+//             int ny = y + dy;
+//
+//             if (nx < 0 || nx >= WIDTH || ny < 0 || ny >= HEIGHT)
+//                 continue;
+//
+//             int index = occupied[ny][nx];
+//
+//             if (index == -1)
+//                 continue;
+//
+//             if (!particles[index].isMovable())
+//                 continue;
+//
+//             activateParticle(index);
+//         }
+//     }
+// }
+
+void Simulation::wakeNeighbors(int x, int y)
 {
-    for (int dy = -1; dy <= 1; dy++)
+    // Above
+    if (y > 0)
     {
-        for (int dx = -1; dx <= 1; dx++)
-        {
-            if (dx == 0 && dy == 0)
-                continue;
+        int index = occupied[y - 1][x];
 
-            int nx = x + dx;
-            int ny = y + dy;
+        if (index != -1 && particles[index].isMovable())
+            scheduleParticle(index);
+    }
 
-            if (nx < 0 || nx >= WIDTH || ny < 0 || ny >= HEIGHT)
-                continue;
+    // Below
+    if (y + 1 < HEIGHT)
+    {
+        int index = occupied[y + 1][x];
 
-            int index = occupied[ny][nx];
-
-            if (index == -1)
-                continue;
-
-            if (!particles[index].isMovable())
-                continue;
-
-            activateParticle(index);
-        }
+        if (index != -1 && particles[index].isMovable())
+            scheduleParticle(index);
     }
 }
+
+// void Simulation::wakeNeighbors(int x, int y, int direction)
+// {
+//     int wakeY = y - direction;
+//
+//     if (wakeY < 0 || wakeY >= HEIGHT)
+//         return;
+//
+//     int index = occupied[wakeY][x];
+//
+//     if (index == -1)
+//         return;
+//
+//     if (particles[index].isMovable())
+//         scheduleParticle(index);
+// }
 
 bool Simulation::canDisplace(int particleIndex, int otherIndex) 
 {
@@ -132,9 +169,12 @@ void Simulation::moveParticle(int index, int newX, int newY)
     if (oldX < 0 || oldX >= WIDTH || oldY < 0 || oldY >= HEIGHT)
         return;
 
+    int direction = gravity > 0 ? p.getMaterial().dir : -p.getMaterial().dir;
+
     occupied[oldY][oldX] = -1;
     clearPixel(oldX, oldY);
 
+    // wakeNeighbors(oldX, oldY, direction);
     wakeNeighbors(oldX, oldY);
 
     p.setPosition(newX, newY);
@@ -156,9 +196,24 @@ void Simulation::placeParticle(int x, int y)
         return;
 
     // saving the particle on index
-    int newIndex = particleCount++;
-    if (!freeParticles.empty()) {
-        // Reuse a previously removed particle slot
+    // int newIndex = particleCount++;
+    // if (!freeParticles.empty()) {
+    //     // Reuse a previously removed particle slot
+    //     newIndex = freeParticles.back();
+    //     freeParticles.pop_back();
+    // }
+    // else
+    // {
+    //     if (particleCount >= PARTICLE_COUNT)
+    //         return;
+    //
+    //     newIndex = particleCount++;
+    // }
+
+    int newIndex;
+
+    if (!freeParticles.empty())
+    {
         newIndex = freeParticles.back();
         freeParticles.pop_back();
     }
@@ -169,6 +224,7 @@ void Simulation::placeParticle(int x, int y)
 
         newIndex = particleCount++;
     }
+
     particles[newIndex] = Particle(x, y, *selectedMaterial);
 
     // ----- Fire -----
@@ -203,6 +259,7 @@ void Simulation::removeParticle(int index)
 
     int x = p.getX();
     int y = p.getY();
+    int direction = gravity > 0 ? p.getMaterial().dir : -p.getMaterial().dir;
 
     if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) 
     {
@@ -210,6 +267,7 @@ void Simulation::removeParticle(int index)
         {
             occupied[y][x] = -1;
             clearPixel(x, y);
+            // wakeNeighbors(x, y, direction);
             wakeNeighbors(x, y);
         }
     }
@@ -258,10 +316,17 @@ void Simulation::update(float deltaTime)
     {
         if (particleIndex < 0 || particleIndex >= particleCount)
             continue;
+        particles[particleIndex].setScheduled(false);
+    }
+    for (int particleIndex : activeParticles) 
+    {
+        if (particleIndex < 0 || particleIndex >= particleCount)
+            continue;
 
         Particle &p = particles[particleIndex];
 
-        p.setActive(false);
+        // p.setActive(false);
+        // p.setScheduled(false);
 
         if (p.getX() < 0 || p.getY() < 0)
             continue;
@@ -279,8 +344,8 @@ void Simulation::update(float deltaTime)
             continue;
         }
 
-        if (p.hasLifetime()) 
-            activateParticle(particleIndex);
+        // if (p.hasLifetime()) 
+        //     activateParticle(particleIndex);
 
         if (!p.isMovable())
             continue;
@@ -301,232 +366,234 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime)
 
     //  ----- Calculate vertical movement -----
 
-    float movement = p.getVelocity() * deltaTime;
+    // float movement = p.getVelocity() * deltaTime;
+    //
+    // int steps = static_cast<int>(std::abs(movement));
 
-    int steps = static_cast<int>(std::abs(movement));
+    // steps = std::clamp(steps, 1, 4);
 
-    steps = std::clamp(steps, 1, 4);
+    int direction = 
+        gravity > 0
+        ? p.getMaterial().dir
+        : -p.getMaterial().dir;
 
-    int direction = 0;
-    if (gravity > 0)
-        direction = p.getMaterial().dir;
-    else
-        direction = - p.getMaterial().dir;
-
-    // ----- Vertical + diagonal movement -----
-
-    bool blocked = false;
-
-    for (int step = 0; step < steps; step++) 
-    {
-        int x = p.getX();
-        int y = p.getY();
-
-        int nextY = y + direction;
-
-        // ----- Outside screen -----
-
-        if (nextY < 0 || nextY >= HEIGHT) 
-        {
-            if (p.getMaterial().isFire) 
-            {
-                fireDies(index);
-                return;
-            }
-
-            p.stop();
-            blocked = true;
-            break;
-        }
-
-        // ----- Vertical movement -----
-
-        int otherIndex = occupied[nextY][x];
-
-        // ----- Turn fire into smoke on contact -----
-        if (p.getMaterial().type == MaterialType::Fire &&
-                otherIndex != -1 &&
-                particles[otherIndex].getMaterial().type == MaterialType::Smoke)
-        {
-            fireDies(index);
-            return;
-        }
-
-        // ----- Check if the particle above or below can be displaced -----
-        if (canDisplace(index, otherIndex))
-        {
-            occupied[y][x] = otherIndex;
-
-            if (otherIndex != -1) 
-            {
-                particles[otherIndex].setPosition(x, y);
-                activateParticle(otherIndex);
-
-                setPixel(x, y, particles[otherIndex].getMaterial());
-            }
-            else {
-                clearPixel(x, y);
-                wakeNeighbors(x, y);
-            }
-
-            p.setPosition(x, nextY);
-
-            occupied[nextY][x] = index;
-
-            setPixel(x, nextY, p.getMaterial());
-
-            activateParticle(index);
-
-            continue;
-        }
-
-        // -------------------------------------
-        // Diagonal movement
-        // -------------------------------------
-
-        bool moved = false;
-
-        int firstDirection = (fastRandom() & 1) ? -1 : 1;
-
-        for (int attempt = 0; attempt < 2; attempt++) 
-        {
-            int nextX = x + firstDirection;
-
-            if (nextX >= 0 && nextX < WIDTH) 
-            {
-                int diagonalIndex = occupied[nextY][nextX];
-
-                if (canDisplace(index, diagonalIndex)) 
-                {
-                    occupied[y][x] = diagonalIndex;
-
-                    if (diagonalIndex != -1) 
-                    {
-                        particles[diagonalIndex].setPosition(x, y);
-
-                        activateParticle(diagonalIndex);
-
-                        setPixel(x, y, particles[diagonalIndex].getMaterial());
-                    }
-                    else {
-                        clearPixel(x, y);
-                        wakeNeighbors(x, y);
-                    }
-
-                    p.setPosition(nextX, nextY);
-                    activateParticle(index);
-                    setPixel(nextX, nextY, p.getMaterial());
-                    occupied[nextY][nextX] = index;
-
-                    moved = true;
-                    break;
-                }
-            }
-            firstDirection *= -1;
-        }
-
-        if (moved) 
-        {
-            activateParticle(index);
-            continue;
-        }
-
-        // -------------------------------------
-        // Couldn't move
-        // -------------------------------------
-
-        blocked = true;
-        break;
-    }
-
-    // -----------------------------------------
-    // Horizontal spreading (Fixed Liquid Movement & Solid Walls)
-    // -----------------------------------------
-
-    float spread = p.getSpread();
-
-    if (spread > 0.0f) {
-        int maxSpread = static_cast<int>(spread * 10.0f);
-        if (maxSpread < 1)
-            maxSpread = 1;
-
-        int currentX = p.getX();
-        int y = p.getY();
-
-        bool leftBlocked = false;
-        bool rightBlocked = false;
-
-        // Randomize initial direction to keep fluid level flat
-        bool checkLeftFirst = (fastRandom() & 1) != 0;
-
-        for (int distance = 1; distance <= maxSpread; distance++) 
-        {
-            auto trySide = [&](int dist, int dir, bool &isBlocked) -> bool 
-            {
-                if (isBlocked)
-                    return false;
-
-                int targetX = currentX + (dist * dir);
-
-                // 1. Boundary Check
-                if (targetX < 0 || targetX >= WIDTH) 
-                {
-                    isBlocked = true;
-                    return false;
-                }
-
-                int otherIdx = occupied[y][targetX];
-
-                // 2. Target cell is Empty Air -> Move into it!
-                if (otherIdx == -1)
-                {
-                    occupied[y][currentX] = -1;
-                    clearPixel(currentX, y);
-                    wakeNeighbors(currentX, y);
-
-                    p.setPosition(targetX, y);
-                    occupied[y][targetX] = index;
-                    setPixel(targetX, y, p.getMaterial());
-
-                    activateParticle(index);
-                    return true; // Successfully moved
-                }
-
-                // 3. Target cell has an immovable solid (Stone) -> Stop scanning this
-                // side!
-                if (!particles[otherIdx].isMovable())
-                {
-                    isBlocked = true;
-                    return false;
-                }
-
-                // 4. Target cell is another liquid/movable particle with same/higher
-                // density -> Do NOT block scanning! Let the scan step OVER this
-                // particle to look for air further out.
-                return false;
-            };
-
-            if (checkLeftFirst)
-            {
-                if (trySide(distance, -1, leftBlocked))
-                    break;
-                if (trySide(distance, 1, rightBlocked))
-                    break;
-            }
-            else {
-                if (trySide(distance, 1, rightBlocked))
-                    break;
-                if (trySide(distance, -1, leftBlocked))
-                    break;
-            }
-
-            if (leftBlocked && rightBlocked)
-            {
-                break;
-            }
-        }
-    }
+    moveVertical(p, index, direction);
 }
+// ----- Vertical + diagonal movement -----
+
+// bool blocked = false;
+//
+// for (int step = 0; step < steps; step++) 
+// {
+//     int x = p.getX();
+//     int y = p.getY();
+//
+//     int nextY = y + direction;
+//
+//     // ----- Outside screen -----
+//
+//     if (nextY < 0 || nextY >= HEIGHT) 
+//     {
+//         if (p.getMaterial().isFire) 
+//         {
+//             fireDies(index);
+//             return;
+//         }
+//
+//         p.stop();
+//         blocked = true;
+//         break;
+//     }
+//
+//     // ----- Vertical movement -----
+//
+//     int otherIndex = occupied[nextY][x];
+//
+//     // ----- Turn fire into smoke on contact -----
+//     //     if (p.getMaterial().type == MaterialType::Fire &&
+//     //             otherIndex != -1 &&
+//     //             particles[otherIndex].getMaterial().type == MaterialType::Smoke)
+//     //     {
+//     //         fireDies(index);
+//     //         return;
+//     //     }
+//
+//     // ----- Check if the particle above or below can be displaced -----
+//     if (canDisplace(index, otherIndex))
+//     {
+//         occupied[y][x] = otherIndex;
+//
+//         if (otherIndex != -1) 
+//         {
+//             particles[otherIndex].setPosition(x, y);
+//             activateParticle(otherIndex);
+//
+//             setPixel(x, y, particles[otherIndex].getMaterial());
+//         }
+//         else
+//         {
+//             clearPixel(x, y);
+//             wakeNeighbors(x, y);
+//         }
+//
+//         p.setPosition(x, nextY);
+//
+//         occupied[nextY][x] = index;
+//
+//         setPixel(x, nextY, p.getMaterial());
+//
+//         activateParticle(index);
+//
+//         continue;
+//     }
+//
+// -------------------------------------
+// Diagonal movement
+// -------------------------------------
+
+//     bool moved = false;
+//
+//     int firstDirection = (fastRandom() & 1) ? -1 : 1;
+//
+//     for (int attempt = 0; attempt < 2; attempt++) 
+//     {
+//         int nextX = x + firstDirection;
+//
+//         if (nextX >= 0 && nextX < WIDTH) 
+//         {
+//             int diagonalIndex = occupied[nextY][nextX];
+//
+//             if (canDisplace(index, diagonalIndex)) 
+//             {
+//                 occupied[y][x] = diagonalIndex;
+//
+//                 if (diagonalIndex != -1) 
+//                 {
+//                     particles[diagonalIndex].setPosition(x, y);
+//
+//                     activateParticle(diagonalIndex);
+//
+//                     setPixel(x, y, particles[diagonalIndex].getMaterial());
+//                 }
+//                 else {
+//                     clearPixel(x, y);
+//                     wakeNeighbors(x, y);
+//                 }
+//
+//                 p.setPosition(nextX, nextY);
+//                 activateParticle(index);
+//                 setPixel(nextX, nextY, p.getMaterial());
+//                 occupied[nextY][nextX] = index;
+//
+//                 moved = true;
+//                 break;
+//             }
+//         }
+//         firstDirection *= -1;
+//     }
+//
+//     if (moved) 
+//     {
+//         activateParticle(index);
+//         continue;
+//     }
+//
+//     // -------------------------------------
+//     // Couldn't move
+//     // -------------------------------------
+//
+//     blocked = true;
+//     break;
+// }
+
+// -----------------------------------------
+// Horizontal spreading (Fixed Liquid Movement & Solid Walls)
+// -----------------------------------------
+
+// float spread = p.getSpread();
+//
+// if (spread > 0.0f) {
+//     int maxSpread = static_cast<int>(spread * 10.0f);
+//     if (maxSpread < 1)
+//         maxSpread = 1;
+//
+//     int currentX = p.getX();
+//     int y = p.getY();
+//
+//     bool leftBlocked = false;
+//     bool rightBlocked = false;
+//
+//     // Randomize initial direction to keep fluid level flat
+//     bool checkLeftFirst = (fastRandom() & 1) != 0;
+//
+//     for (int distance = 1; distance <= maxSpread; distance++) 
+//     {
+//         auto trySide = [&](int dist, int dir, bool &isBlocked) -> bool 
+//         {
+//             if (isBlocked)
+//                 return false;
+//
+//             int targetX = currentX + (dist * dir);
+//
+//             // 1. Boundary Check
+//             if (targetX < 0 || targetX >= WIDTH) 
+//             {
+//                 isBlocked = true;
+//                 return false;
+//             }
+//
+//             int otherIdx = occupied[y][targetX];
+//
+//             // 2. Target cell is Empty Air -> Move into it!
+//             if (otherIdx == -1)
+//             {
+//                 occupied[y][currentX] = -1;
+//                 clearPixel(currentX, y);
+//                 wakeNeighbors(currentX, y);
+//
+//                 p.setPosition(targetX, y);
+//                 occupied[y][targetX] = index;
+//                 setPixel(targetX, y, p.getMaterial());
+//
+//                 activateParticle(index);
+//                 return true; // Successfully moved
+//             }
+//
+//             // 3. Target cell has an immovable solid (Stone) -> Stop scanning this
+//             // side!
+//             if (!particles[otherIdx].isMovable())
+//             {
+//                 isBlocked = true;
+//                 return false;
+//             }
+//
+//             // 4. Target cell is another liquid/movable particle with same/higher
+//             // density -> Do NOT block scanning! Let the scan step OVER this
+//             // particle to look for air further out.
+//             return false;
+//         };
+//
+//         if (checkLeftFirst)
+//         {
+//             if (trySide(distance, -1, leftBlocked))
+//                 break;
+//             if (trySide(distance, 1, rightBlocked))
+//                 break;
+//         }
+//         else {
+//             if (trySide(distance, 1, rightBlocked))
+//                 break;
+//             if (trySide(distance, -1, leftBlocked))
+//                 break;
+//         }
+//
+//         if (leftBlocked && rightBlocked)
+//         {
+//             break;
+//         }
+//     }
+// }
+// }
 
 unsigned int Simulation::fastRandom() 
 {
@@ -691,3 +758,72 @@ bool Simulation::isOccupied(int x, int y) const
     return occupied[y][x] != -1;
 }
 
+void Simulation::scheduleParticleAbove(int x, int y)
+{
+    if (y <= 0)
+        return;
+
+    int index = occupied[y - 1][x];
+
+    if (index != -1 && particles[index].isMovable())
+        scheduleParticle(index);
+}
+
+void Simulation::scheduleParticle(int index)
+{
+    if (index < 0 || index >= particleCount)
+        return;
+
+    Particle& p = particles[index];
+
+    if (p.isScheduled())
+        return;
+
+    p.setScheduled(true);
+    nextActiveParticles.push_back(index);
+}
+
+void Simulation::moveVertical(Particle&p, int index, int direction)
+{
+    int x = p.getX();
+    int y = p.getY();
+    int nextY = y + direction;
+
+    if (nextY < 0 || nextY >= HEIGHT)
+    {
+        p.stop();
+        return;
+    }
+
+    int otherIndex = occupied[nextY][x];
+
+    if (!canDisplace(index, otherIndex))
+    {
+        p.stop();
+        return;
+    }
+
+    // Move / swap
+    occupied[y][x] = otherIndex;
+
+    if (otherIndex != -1)
+    {
+        Particle& other = particles[otherIndex];
+
+        other.setPosition(x, y);
+        setPixel(x, y, other.getMaterial());
+        scheduleParticle(otherIndex);
+    }
+    else
+    {
+        clearPixel(x, y);
+        // wakeNeighbors(x, y, direction);
+        wakeNeighbors(x, y);
+    }
+
+    p.setPosition(x, nextY);
+    occupied[nextY][x] = index;
+    setPixel(x, nextY, p.getMaterial());
+
+    scheduleParticle(index);
+}

@@ -55,6 +55,10 @@ class Simulation
 
         bool isOccupied(int x, int y) const;
 
+        void scheduleParticleAbove(int x, int y);
+        void scheduleParticle(int index);
+        void moveVertical(Particle&p, int index, int direction);
+
     private:
         unsigned int randomState;
         int occupied[HEIGHT][WIDTH];
@@ -77,6 +81,7 @@ class Simulation
         void deactivateParticle(int index);
 
         void wakeNeighbors(int x, int y);
+        // void wakeNeighbors(int x, int y, int direction);
 
         bool canDisplace( int particleIndex, int otherIndex);
 
