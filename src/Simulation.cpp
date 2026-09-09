@@ -333,7 +333,6 @@ void Simulation::update(float deltaTime)
 
         p.updateLifetime(deltaTime);
 
-        // the particles that are not redrawn or waked up are not checked 
         if (p.isDead())
         {
             if(p.getMaterial().type == MaterialType::Fire)
@@ -373,31 +372,11 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime)
 
     // steps = std::clamp(steps, 1, 4);
 
-    bool blocked = false;
     int direction = 
         gravity > 0
         ? p.getMaterial().dir
         : -p.getMaterial().dir;
 
-    int x = p.getX();
-    int y = p.getY();
-
-    int nextY = y + direction;
-
-    // ----- Outside screen -----
-
-    if (nextY < 0 || nextY >= HEIGHT) 
-    {
-        if (p.getMaterial().isFire) 
-        {
-            fireDies(index);
-            return;
-        }
-
-        p.stop();
-        blocked = true;
-        // break;
-    }
     moveVertical(p, index, direction);
 }
 // ----- Vertical + diagonal movement -----
@@ -804,7 +783,52 @@ void Simulation::scheduleParticle(int index)
     nextActiveParticles.push_back(index);
 }
 
-void Simulation::moveVertical(Particle&p, int index, int direction)
+// void Simulation::moveVertical(Particle&p, int index, int direction)
+// {
+//     int x = p.getX();
+//     int y = p.getY();
+//     int nextY = y + direction;
+//
+//     if (nextY < 0 || nextY >= HEIGHT)
+//     {
+//         p.stop();
+//         return;
+//     }
+//
+//     int otherIndex = occupied[nextY][x];
+//
+//     if (!canDisplace(index, otherIndex))
+//     {
+//         // p.stop();
+//         return;
+//     }
+//
+//     // Move / swap
+//     occupied[y][x] = otherIndex;
+//
+//     if (otherIndex != -1)
+//     {
+//         Particle& other = particles[otherIndex];
+//
+//         other.setPosition(x, y);
+//         setPixel(x, y, other.getMaterial());
+//         scheduleParticle(otherIndex);
+//     }
+//     else
+//     {
+//         clearPixel(x, y);
+//         // wakeNeighbors(x, y, direction);
+//         wakeNeighbors(x, y);
+//     }
+//
+//     p.setPosition(x, nextY);
+//     occupied[nextY][x] = index;
+//     setPixel(x, nextY, p.getMaterial());
+//
+//     scheduleParticle(index);
+// }
+
+void Simulation::moveVertical(Particle& p, int index, int direction)
 {
     int x = p.getX();
     int y = p.getY();
@@ -818,33 +842,43 @@ void Simulation::moveVertical(Particle&p, int index, int direction)
 
     int otherIndex = occupied[nextY][x];
 
-    if (!canDisplace(index, otherIndex))
+    // Empty cell
+    if (otherIndex == -1)
     {
-        p.stop();
+        occupied[y][x] = -1;
+        clearPixel(x, y);
+        wakeNeighbors(x, y);
+
+        p.setPosition(x, nextY);
+        occupied[nextY][x] = index;
+        setPixel(x, nextY, p.getMaterial());
+
+        scheduleParticle(index);
         return;
     }
 
-    // Move / swap
+    // Occupied cell: only swap if we are denser
+    if (!canDisplace(index, otherIndex))
+        return;
+
+    Particle& other = particles[otherIndex];
+
+    // Move displaced particle into our old position
     occupied[y][x] = otherIndex;
 
-    if (otherIndex != -1)
-    {
-        Particle& other = particles[otherIndex];
+    other.setPosition(x, y);
+    setPixel(x, y, other.getMaterial());
 
-        other.setPosition(x, y);
-        setPixel(x, y, other.getMaterial());
-        scheduleParticle(otherIndex);
-    }
-    else
-    {
-        clearPixel(x, y);
-        // wakeNeighbors(x, y, direction);
-        wakeNeighbors(x, y);
-    }
-
+    // Move current particle into target
     p.setPosition(x, nextY);
     occupied[nextY][x] = index;
     setPixel(x, nextY, p.getMaterial());
 
+    scheduleParticle(otherIndex);
     scheduleParticle(index);
+
+    // wake the particles from the new place and the older
+    wakeNeighbors(x, y);
+    wakeNeighbors(x, nextY);
 }
+

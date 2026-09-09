@@ -26,3 +26,16 @@ struct Material
     float r, g, b, a;
     bool isFire;
 };
+
+inline const char* materialTypeName(MaterialType type)
+{
+    switch (type)
+    {
+        case MaterialType::Sand:  return "Sand";
+        case MaterialType::Water: return "Water";
+        case MaterialType::Smoke: return "Smoke";
+        case MaterialType::Fire:  return "Fire";
+        default:                  return "Unknown";
+    }
+}
+
