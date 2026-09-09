@@ -57,7 +57,9 @@ class Simulation
 
         void scheduleParticleAbove(int x, int y);
         void scheduleParticle(int index);
-        void moveVertical(Particle&p, int index, int direction);
+        bool moveVertical(Particle&p, int index, int direction);
+        bool moveDiagonal(Particle& p, int index, int direction);
+        bool moveHorizontal(Particle&p, int index);
 
     private:
         unsigned int randomState;

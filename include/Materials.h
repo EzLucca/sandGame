@@ -5,7 +5,7 @@ inline const Material fireMaterial{
     MaterialType::Fire,         // type
     0.0f,                       // viscosity
     1.0f,                       // density
-    1.0f,                       // spread
+    0.1f,                       // spread
     false,                      // affectedByGravity
     -1,                         // vertical diretion
     -2.0f,                      // gravityValue
@@ -19,7 +19,7 @@ inline const Material sandMaterial{
     MaterialType::Sand,         // type
     0.8f,                       // viscosity
     1.5f,                       // density
-    0.0f,                       // spread
+    0.1f,                       // spread
     true,                       // affectedByGravity
     1,                          // vertical diretion
     1.0f,                       // gravityValue
@@ -46,9 +46,9 @@ inline const Material stoneMaterial{
 
 inline const Material waterMaterial{
     MaterialType::Water,        // type
-    0.0f,                       // viscosity
+    1.0f,                       // viscosity
     1.0f,                       // density
-    2.0f,                       // spread
+    0.5f,                       // spread
     true,                       // affectedByGravity
     1,                          // vertical diretion
     1.0f,                       // gravityValue
