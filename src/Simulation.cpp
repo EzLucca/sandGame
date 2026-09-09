@@ -372,10 +372,7 @@ void Simulation::updateParticle(Particle &p, int index, float deltaTime)
 
     // steps = std::clamp(steps, 1, 4);
 
-    int direction = 
-        gravity > 0
-        ? p.getMaterial().dir
-        : -p.getMaterial().dir;
+    int direction = gravity > 0 ? p.getMaterial().dir : -p.getMaterial().dir;
 
     moveVertical(p, index, direction);
 }
@@ -635,6 +632,7 @@ void Simulation::fireDies(int index)
 
     // Restore player's selected material
     selectedMaterial = previousMaterial;
+    wakeNeighbors(x, y);
 }
 
 void Simulation::clearAll() 
@@ -674,10 +672,7 @@ void    Simulation::setGravity(float value)
     gravity = value;
 }
 
-void Simulation::addParticle(
-        int x,
-        int y,
-        const Material& material)
+void Simulation::addParticle( int x, int y, const Material& material)
 {
     if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
         return;
@@ -836,6 +831,11 @@ void Simulation::moveVertical(Particle& p, int index, int direction)
 
     if (nextY < 0 || nextY >= HEIGHT)
     {
+        if (p.getMaterial().isFire) 
+        {
+            fireDies(index);
+            return;
+        }
         p.stop();
         return;
     }
@@ -859,7 +859,11 @@ void Simulation::moveVertical(Particle& p, int index, int direction)
 
     // Occupied cell: only swap if we are denser
     if (!canDisplace(index, otherIndex))
+    {
+        if(p.getMaterial().isFire)
+            scheduleParticle(index);
         return;
+    }
 
     Particle& other = particles[otherIndex];
 
