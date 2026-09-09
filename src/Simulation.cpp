@@ -778,57 +778,14 @@ void Simulation::scheduleParticle(int index)
     nextActiveParticles.push_back(index);
 }
 
-// void Simulation::moveVertical(Particle&p, int index, int direction)
-// {
-//     int x = p.getX();
-//     int y = p.getY();
-//     int nextY = y + direction;
-//
-//     if (nextY < 0 || nextY >= HEIGHT)
-//     {
-//         p.stop();
-//         return;
-//     }
-//
-//     int otherIndex = occupied[nextY][x];
-//
-//     if (!canDisplace(index, otherIndex))
-//     {
-//         // p.stop();
-//         return;
-//     }
-//
-//     // Move / swap
-//     occupied[y][x] = otherIndex;
-//
-//     if (otherIndex != -1)
-//     {
-//         Particle& other = particles[otherIndex];
-//
-//         other.setPosition(x, y);
-//         setPixel(x, y, other.getMaterial());
-//         scheduleParticle(otherIndex);
-//     }
-//     else
-//     {
-//         clearPixel(x, y);
-//         // wakeNeighbors(x, y, direction);
-//         wakeNeighbors(x, y);
-//     }
-//
-//     p.setPosition(x, nextY);
-//     occupied[nextY][x] = index;
-//     setPixel(x, nextY, p.getMaterial());
-//
-//     scheduleParticle(index);
-// }
-
 void Simulation::moveVertical(Particle& p, int index, int direction)
 {
     int x = p.getX();
     int y = p.getY();
     int nextY = y + direction;
 
+    // Particle reached the vertical boundary
+    // Fire dies and other stop
     if (nextY < 0 || nextY >= HEIGHT)
     {
         if (p.getMaterial().isFire) 
@@ -842,7 +799,16 @@ void Simulation::moveVertical(Particle& p, int index, int direction)
 
     int otherIndex = occupied[nextY][x];
 
-    // Empty cell
+    // ----- Turn fire into smoke on contact -----
+    if (p.getMaterial().type == MaterialType::Fire &&
+            otherIndex != -1 &&
+            particles[otherIndex].getMaterial().type == MaterialType::Smoke)
+    {
+        fireDies(index);
+        return;
+    }
+
+    // Target empty cell
     if (otherIndex == -1)
     {
         occupied[y][x] = -1;
@@ -860,6 +826,7 @@ void Simulation::moveVertical(Particle& p, int index, int direction)
     // Occupied cell: only swap if we are denser
     if (!canDisplace(index, otherIndex))
     {
+        // Make sure the fire keep on schedule even as blocked
         if(p.getMaterial().isFire)
             scheduleParticle(index);
         return;
@@ -878,10 +845,11 @@ void Simulation::moveVertical(Particle& p, int index, int direction)
     occupied[nextY][x] = index;
     setPixel(x, nextY, p.getMaterial());
 
+    // both particles moved, so both need another update
     scheduleParticle(otherIndex);
     scheduleParticle(index);
 
-    // wake the particles from the new place and the older
+    // The movement changed both cells, so wake neighbors
     wakeNeighbors(x, y);
     wakeNeighbors(x, nextY);
 }
