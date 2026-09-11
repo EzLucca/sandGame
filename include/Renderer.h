@@ -39,8 +39,5 @@ class Renderer
 
         std::string readFile(const char* path);
 
-        GLuint compileShader(
-                GLenum type,
-                const std::string& source
-                );
+        GLuint compileShader( GLenum type, const std::string& source);
 };

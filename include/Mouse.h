@@ -12,7 +12,7 @@ class Mouse
 
         int x;
         int y;
-        int brush_radius = 8;
+        int brush_radius = 0;
 
         bool leftPressed;
         bool erasePressed;

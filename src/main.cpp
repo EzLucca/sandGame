@@ -66,8 +66,8 @@ int main()
     // ----- Create window -----
 
     GLFWwindow* window = glfwCreateWindow(
-            Simulation::WIDTH,
-            Simulation::HEIGHT,
+            Simulation::WIDTH * Simulation::SCALE,
+            Simulation::HEIGHT  * Simulation::SCALE,
             "Pixel simulation",
             nullptr,
             nullptr

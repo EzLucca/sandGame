@@ -356,12 +356,7 @@ void Renderer::drawCircle(int centerX, int centerY, int radius, float r, float g
                 "color"
                 );
 
-    glUniform3f(
-            colorLocation,
-            r,
-            g,
-            b
-            );
+    glUniform3f( colorLocation, r, g, b);
 
     // Screen dimensions
     GLint screenSizeLocation =
