@@ -10,9 +10,12 @@ class Simulation
     public:
         static constexpr int WIDTH = 192;
         static constexpr int HEIGHT = 108;
-        static constexpr int SCALE = 10;
+        static constexpr int SCALE = 10;                        // Pixel size
         static constexpr int PARTICLE_COUNT = 10000000;
         int gravity = 10;
+        bool horizontalMoves = true;
+        bool diagonalMoves = true;
+        bool verticalMoves = true;
 
         Simulation();
 

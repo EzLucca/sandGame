@@ -146,6 +146,15 @@ int main()
             if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
                 simulation.setGravity(-simulation.getGravity());
 
+            // ----- DEBUG MOVEMENTS -----
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+                simulation.diagonalMoves = !simulation.diagonalMoves;
+            if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+                simulation.horizontalMoves = !simulation.horizontalMoves;
+            if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+                simulation.verticalMoves = !simulation.verticalMoves;
+            // ----- DEBUG MOVEMENTS -----
+
             // Clear all particles when 'C' key is pressed
             if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
                 simulation.clearAll();
