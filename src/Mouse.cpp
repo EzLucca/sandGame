@@ -1,7 +1,7 @@
 #include <algorithm>
 #include "Mouse.h"
 
-constexpr int MIN_BRUSH_RADIUS = 1;
+constexpr int MIN_BRUSH_RADIUS = 0;
 constexpr int MAX_BRUSH_RADIUS = 50;
 
 Mouse::Mouse( GLFWwindow* window, int width, int height)
@@ -12,7 +12,8 @@ Mouse::Mouse( GLFWwindow* window, int width, int height)
         x(0),
         y(0),
         leftPressed(false),
-        erasePressed(false)
+        erasePressed(false),
+        brush_radius(0)
 {
 }
 

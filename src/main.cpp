@@ -175,6 +175,10 @@ int main()
             Movements::updateExplosion(simulation);
             renderer.render(simulation.getPixelData());
 
+            // ----- Brush preview -----
+            renderer.drawCircle( mouse.getX(), mouse.getY(), mouse.getBrushRadius(),
+                    1.0f, 1.0f, 1.0f);
+
             // ----- Lauch -----
             if (Movements::isLaunchActive())
             {

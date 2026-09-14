@@ -19,7 +19,7 @@ inline const Material sandMaterial{
     MaterialType::Sand,         // type
     0.8f,                       // viscosity
     1.5f,                       // density
-    0.1f,                       // spread
+    0.0f,                       // spread
     true,                       // affectedByGravity
     1,                          // vertical diretion
     1.0f,                       // gravityValue
@@ -48,7 +48,7 @@ inline const Material waterMaterial{
     MaterialType::Water,        // type
     1.0f,                       // viscosity
     1.0f,                       // density
-    0.5f,                       // spread
+    4.0f,                       // spread
     true,                       // affectedByGravity
     1,                          // vertical diretion
     1.0f,                       // gravityValue
@@ -62,7 +62,7 @@ inline const Material smokeMaterial{
     MaterialType::Smoke,        // type
     0.8f,                       // viscosity
     0.1f,                       // density
-    2.5f,                       // spread
+    8.0f,                       // spread
     true,                       // affectedByGravity
     -1,                         // vertical diretion
     -2.0f,                      // gravityValue
