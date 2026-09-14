@@ -20,43 +20,37 @@ class Particle
         Particle(int startX, int startY, const Material& material);
         const Material& getMaterial() const;
 
-        void applyGravity(int gravity, float deltaTime);
+        bool hasLifetime() const;
+        bool isActive() const;
+        bool isAffectedByGravity() const;
+        bool isDead() const;
+        bool isMovable() const;
+        bool isScheduled() const;
 
-        // void moveDown();
-        // void moveLeft();
-        // void moveRight();
-        // void moveDownLeft();
-        // void moveDownRight();
+        float getHorizontalVelocity() const;
+        float getLifetime() const;
+        float getSpread() const;
+        float getVelocity() const;
+
+        int getActiveIndex() const;
+        int getX() const;
+        int getY() const;
+
+        void applyGravity(int gravity, float deltaTime);
+        void move(int dx, int dy);
+        void moveHorizontal(int direction);
         void moveUp();
         void moveUpLeft();
         void moveUpRight();
-        void stop();
-        void setPosition(int newX, int newY);
-
-        int getX() const;
-        int getY() const;
-        bool isAffectedByGravity() const;
-        bool isMovable() const;
-        float getSpread() const;
-
-        void move(int dx, int dy);
-        void moveHorizontal(int direction);
         void moveVertical(int direction);
-        void setVelocity(float value);
-        float getVelocity() const;
-        void setHorizontalVelocity(float value);
-        float getHorizontalVelocity() const;
-        void setLifetime(float value);
-        float getLifetime() const;
-        bool hasLifetime() const;
-        void updateLifetime(float deltaTime);
-        bool isDead() const;
-
         void setActive(bool value);
-        bool isActive() const;
-        int getActiveIndex() const;
         void setActiveIndex(int index);
+        void setHorizontalVelocity(float value);
+        void setLifetime(float value);
+        void setPosition(int newX, int newY);
         void setScheduled(bool value);
-        bool isScheduled() const;
+        void setVelocity(float value);
+        void stop();
+        void updateLifetime(float deltaTime);
 };
 

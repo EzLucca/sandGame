@@ -19,82 +19,53 @@ class Simulation
 
         Simulation();
 
-        void update(float deltaTime);
-
-        void placeParticle(int x, int y);
-        void removeParticle(int index);
-
-        void useBrush( int centerX, int centerY, int radius, bool erase);
-
-        void setSelectedMaterial(const Material* material)
-        {
-            selectedMaterial = material;
-        }
-
-        const std::vector<unsigned char>& getPixelData() const
-        {
-            return pixelData;
-        }
-
-        int getParticleCount() const
-        {
-            return particleCount;
-        }
-
-        std::size_t getActiveParticleCount() const
-        {
-            return activeParticles.size();
-        }
-
-        void fireDies(int index);
-
-        void clearAll();
-
-        float getGravity() const;
-        void setGravity(float value);
-        void setPixel( int x, int y, const Material& material);
-        void clearPixel(int x, int y);
-        void addParticle( int x, int y, const Material& material);
-        void removeParticlesInRadius( int centerX, int centerY, int radius);
-
+        bool canDisplace( int particleIndex, int otherIndex);
+        bool checkBoundaryWindow(Particle& p, int index, int position, const int border);
         bool isOccupied(int x, int y) const;
-
-        void scheduleParticleAbove(int x, int y);
-        void scheduleParticle(int index);
-        bool moveVertical(Particle&p, int index, int direction);
         bool moveDiagonal(Particle& p, int index, int direction);
         bool moveHorizontal(Particle&p, int index);
+        bool moveVertical(Particle&p, int index, int direction);
+        bool particleReaction(Particle& p, int index, int otherIndex);
+
+        const std::vector<unsigned char>& getPixelData() const { return pixelData; }
+        float getGravity() const;
+        int getParticleCount() const { return particleCount; }
+        std::size_t getActiveParticleCount() const { return activeParticles.size(); }
+        unsigned int fastRandom();
+
+        void activateParticle(int index);
+        void addParticle( int x, int y, const Material& material);
+        void clearAll();
+        void clearOccupied();
+        void clearPixel(int x, int y);
+        void deactivateParticle(int index);
+        void fireDies(int index);
+        void moveParticle( int index, int newX, int newY);
+        void placeParticle(int x, int y);
+        void removeParticle(int index);
+        void removeParticlesInRadius( int centerX, int centerY, int radius);
+        void scheduleParticle(int index);
+        void scheduleParticleAbove(int x, int y);
+        void setGravity(float value);
+        void setPixel( int x, int y, const Material& material);
+        void setSelectedMaterial(const Material* material) { selectedMaterial = material; }
+        void update(float deltaTime);
+        void updateParticle( Particle& p, int index, float deltaTime);
+        void useBrush( int centerX, int centerY, int radius, bool erase);
+        void wakeNeighbors(int x, int y);
 
     private:
         unsigned int randomState;
         int occupied[HEIGHT][WIDTH];
+        int particleCount = 0;
 
         std::vector<Particle> particles;
         std::vector<int> freeParticles;
-
-        int particleCount = 0;
-
         std::vector<int> activeParticles;
         std::vector<int> nextActiveParticles;
-
         std::vector<unsigned char> pixelData;
 
         const Material* selectedMaterial = &sandMaterial;
 
-        void clearOccupied();
-
-        void activateParticle(int index);
-        void deactivateParticle(int index);
-
-        void wakeNeighbors(int x, int y);
-        // void wakeNeighbors(int x, int y, int direction);
-
-        bool canDisplace( int particleIndex, int otherIndex);
-
-        void moveParticle( int index, int newX, int newY);
-
-        void updateParticle( Particle& p, int index, float deltaTime);
-
-        unsigned int fastRandom();
 };
 

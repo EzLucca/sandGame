@@ -1,10 +1,12 @@
 #include "Simulation.h"
+#include "Movements.h"
 #include "iostream"
 
 #include <algorithm>
-#include <cmath>
 #include <climits>
+#include <cmath>
 #include <cstdlib>
+#include <cassert>
 
 Simulation::Simulation()
     : particles(PARTICLE_COUNT), pixelData(WIDTH * HEIGHT * 4, 0),
@@ -30,11 +32,8 @@ void Simulation::setPixel(int x, int y, const Material &material)
     int index = (y * WIDTH + x) * 4;
 
     pixelData[index + 0] = static_cast<unsigned char>(material.r * 255.0f);
-
     pixelData[index + 1] = static_cast<unsigned char>(material.g * 255.0f);
-
     pixelData[index + 2] = static_cast<unsigned char>(material.b * 255.0f);
-
     pixelData[index + 3] = static_cast<unsigned char>(material.a * 255.0f);
 }
 
@@ -573,27 +572,14 @@ bool    Simulation::moveVertical(Particle& p, int index, int direction)
 
     // Particle reached the vertical boundary
     // Fire dies and other stop
-    if (nextY < 0 || nextY >= HEIGHT)
-    {
-        if (p.getMaterial().isFire) 
-        {
-            fireDies(index);
-            return false;
-        }
-        p.stop();
+    if (checkBoundaryWindow(p, index, nextY, HEIGHT))
         return false;
-    }
 
     int otherIndex = occupied[nextY][x];
 
-    // ----- Turn fire into smoke on contact -----
-    if (p.getMaterial().type == MaterialType::Fire &&
-            otherIndex != -1 &&
-            particles[otherIndex].getMaterial().type == MaterialType::Smoke)
-    {
-        fireDies(index);
+    // ----- Reaction on contact -----
+    if (particleReaction(p, index, otherIndex))
         return false;
-    }
 
     // Target empty cell
     if (otherIndex == -1)
@@ -688,7 +674,7 @@ bool Simulation::moveDiagonal(Particle& p, int index, int direction)
     int nextY = y + direction;
 
     // ----- Outside vertical bounds -----
-    if (nextY < 0 || nextY >= HEIGHT)
+    if (checkBoundaryWindow(p, index, nextY, HEIGHT))
         return false;
 
     //  ----- Randomize left/right -----
@@ -782,8 +768,7 @@ bool Simulation::moveHorizontal(Particle& p, int index)
     float movementChance = 1.0f - viscosity;
 
     float randomValue =
-        static_cast<float>(fastRandom()) /
-        static_cast<float>(UINT_MAX);
+        static_cast<float>(fastRandom()) / static_cast<float>(UINT_MAX);
 
     if (randomValue > movementChance)
         return false;
@@ -805,13 +790,11 @@ bool Simulation::moveHorizontal(Particle& p, int index)
         for (int attempt = 0; attempt < 2; ++attempt)
         {
             int horizontalDirection =
-                (attempt == 0)
-                ? firstDirection
-                : -firstDirection;
+                (attempt == 0) ? firstDirection : -firstDirection;
 
             int nextX = x + horizontalDirection * distance;
 
-            if (nextX < 0 || nextX >= WIDTH)
+            if (checkBoundaryWindow(p, index, nextX, WIDTH))
                 continue;
 
             int otherIndex = occupied[y][nextX];
@@ -825,9 +808,7 @@ bool Simulation::moveHorizontal(Particle& p, int index)
                 // Don't jump over particles.
                 bool pathBlocked = false;
 
-                for (int checkX = x + horizontalDirection;
-                        checkX != nextX;
-                        checkX += horizontalDirection)
+                for (int checkX = x + horizontalDirection; checkX != nextX; checkX += horizontalDirection)
                 {
                     if (occupied[y][checkX] != -1)
                     {
@@ -862,5 +843,38 @@ bool Simulation::moveHorizontal(Particle& p, int index)
         }
     }
 
+    return false;
+}
+
+bool Simulation::checkBoundaryWindow(Particle& p, int index, int position, const int border)
+{
+
+    if (position < 0 || position >= border)
+    {
+        if (p.getMaterial().isFire)
+        {
+            assert(index >= 0);
+            assert(index < static_cast<int>(particles.size()));
+            fireDies(index);
+        }
+        else
+        {
+            p.stop();
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Simulation::particleReaction(Particle& p, int index, int otherIndex)
+{
+    if (otherIndex == -1)
+        return false;
+    if (p.getMaterial().type == MaterialType::Fire && otherIndex != -1 &&
+            particles[otherIndex].getMaterial().type == MaterialType::Smoke) 
+    {
+        fireDies(index);
+        return true;
+    }
     return false;
 }

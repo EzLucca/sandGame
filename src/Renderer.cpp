@@ -179,36 +179,20 @@ void Renderer::createShaders()
         readFile("../shaders/circle_fragment.glsl");
 
     GLuint circleVertexShader =
-        compileShader(
-                GL_VERTEX_SHADER,
-                circleVertexSource
-                );
+        compileShader( GL_VERTEX_SHADER, circleVertexSource);
 
     GLuint circleFragmentShader =
-        compileShader(
-                GL_FRAGMENT_SHADER,
-                circleFragmentSource
-                );
+        compileShader( GL_FRAGMENT_SHADER, circleFragmentSource);
 
     circleShaderProgram = glCreateProgram();
 
-    glAttachShader(
-            circleShaderProgram,
-            circleVertexShader
-            );
+    glAttachShader( circleShaderProgram, circleVertexShader);
 
-    glAttachShader(
-            circleShaderProgram,
-            circleFragmentShader
-            );
+    glAttachShader( circleShaderProgram, circleFragmentShader);
 
     glLinkProgram(circleShaderProgram);
 
-    glGetProgramiv(
-            circleShaderProgram,
-            GL_LINK_STATUS,
-            &success
-            );
+    glGetProgramiv( circleShaderProgram, GL_LINK_STATUS, &success);
 
     if (!success)
     {
@@ -221,10 +205,7 @@ void Renderer::createShaders()
                 infoLog
                 );
 
-        std::cerr
-            << "Circle shader linking failed:\n"
-            << infoLog
-            << '\n';
+        std::cerr << "Circle shader linking failed:\n" << infoLog << '\n';
     }
 
     glDeleteShader(circleVertexShader);
@@ -319,13 +300,9 @@ void Renderer::drawCircle(int centerX, int centerY, int radius, float r, float g
     vertices.reserve((segments + 2) * 2);
 
     // Center
-    vertices.push_back(
-            static_cast<float>(centerX)
-            );
+    vertices.push_back( static_cast<float>(centerX));
 
-    vertices.push_back(
-            static_cast<float>(centerY)
-            );
+    vertices.push_back( static_cast<float>(centerY));
 
     // Circle perimeter
     for (int i = 0; i <= segments; ++i)
@@ -351,19 +328,13 @@ void Renderer::drawCircle(int centerX, int centerY, int radius, float r, float g
 
     // Color
     GLint colorLocation =
-        glGetUniformLocation(
-                circleShaderProgram,
-                "color"
-                );
+        glGetUniformLocation( circleShaderProgram, "color");
 
     glUniform3f( colorLocation, r, g, b);
 
     // Screen dimensions
     GLint screenSizeLocation =
-        glGetUniformLocation(
-                circleShaderProgram,
-                "screenSize"
-                );
+        glGetUniformLocation( circleShaderProgram, "screenSize");
 
     glUniform2f(
             screenSizeLocation,

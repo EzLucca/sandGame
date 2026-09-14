@@ -45,4 +45,5 @@ namespace Movements {
     bool isLaunchActive();
     int getLaunchX();
     int getLaunchY();
+    bool checkBoundaryWindow(Particle& p, int index, Simulation& simulation);
 }
