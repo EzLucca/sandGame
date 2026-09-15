@@ -603,20 +603,6 @@ void Simulation::scheduleParticle(int index)
     nextActiveParticles.push_back(index);
 }
 
-// void Simulation::scheduleParticle(int index)
-// {
-//     if (index < 0 || index >= particleCount)
-//         return;
-//
-//     Particle& p = particles[index];
-//
-//     if (p.isScheduled())
-//         return;
-//
-//     p.setScheduled(true);
-//     nextActiveParticles.push_back(index);
-// }
-
 bool    Simulation::moveVertical(Particle& p, int index, int direction)
 {
     int x = p.getX();
@@ -913,167 +899,6 @@ bool Simulation::moveHorizontal(Particle& p, int index)
     return false;
 }
 
-// bool Simulation::moveHorizontal(Particle& p, int index)
-// {
-//     int x = p.getX();
-//     int y = p.getY();
-//
-//     // Must have something directly below/above depending on gravity.
-//     int direction = gravity > 0 ? p.getMaterial().dir : -p.getMaterial().dir;
-//
-//     int supportY = y + direction;
-//
-//     // if (supportY < 0 || supportY >= HEIGHT)
-//     //     return false;
-//     if (checkBoundaryWindow(p, index, supportY, HEIGHT))
-//         return false;
-//
-//     // We only spread if we're actually supported/blocked.
-//     if (occupied[supportY][x] == -1)
-//         return false;
-//
-//     int firstDirection = (fastRandom() & 1) ? -1 : 1;
-//
-//     for (int attempt = 0; attempt < 2; ++attempt)
-//     {
-//         int dx = (attempt == 0) ? firstDirection : -firstDirection;
-//
-//         int nextX = x + dx;
-//
-//         if (nextX < 0 || nextX >= WIDTH)
-//             continue;
-//
-//         // Horizontal destination must be empty.
-//         if (occupied[y][nextX] != -1)
-//             continue;
-//
-//         // Don't move sideways if there is no support
-//         // under the destination.
-//         if (occupied[supportY][nextX] == -1)
-//             continue;
-//
-//         // Move
-//         occupied[y][x] = -1;
-//         clearPixel(x, y);
-//
-//         p.setPosition(nextX, y);
-//
-//         occupied[y][nextX] = index;
-//         setPixel(nextX, y, p.getMaterial());
-//
-//         scheduleParticle(index);
-//
-//         wakeNeighbors(x, y);
-//         wakeNeighbors(nextX, y);
-//
-//         return true;
-//     }
-//
-//     return false;
-// }
-
-// bool Simulation::moveHorizontal(Particle& p, int index)
-// {
-//     int x = p.getX();
-//     int y = p.getY();
-//
-//     const Material& material = p.getMaterial();
-//
-//     // No horizontal spreading.
-//     if (material.spread <= 0.0f)
-//         return false;
-//
-//     // --------------------------------------------------
-//     // Viscosity
-//     //
-//     // Low viscosity  -> moves easily
-//     // High viscosity -> moves less often
-//     // --------------------------------------------------
-//
-//     // float viscosity = std::clamp(material.viscosity, 0.0f, 1.0f);
-//     float viscosity = p.getMaterial().viscosity;
-//
-//     float movementChance = 1.0f - viscosity;
-//
-//     float randomValue =
-//         static_cast<float>(fastRandom()) / static_cast<float>(UINT_MAX);
-//
-//     if (randomValue > movementChance)
-//         return false;
-//
-//     // --------------------------------------------------
-//     // Maximum horizontal search distance
-//     // --------------------------------------------------
-//
-//     int maxSpread = static_cast<int>(material.spread * 10.0f);
-//
-//     if (maxSpread < 1)
-//         maxSpread = 1;
-//
-//     // Randomize which side we try first.
-//     int firstDirection = (fastRandom() & 1) ? -1 : 1;
-//
-//     for (int distance = 1; distance <= maxSpread; ++distance)
-//     {
-//         for (int attempt = 0; attempt < 2; ++attempt)
-//         {
-//             int horizontalDirection =
-//                 (attempt == 0) ? firstDirection : -firstDirection;
-//
-//             int nextX = x + horizontalDirection * distance;
-//
-//             if (checkBoundaryWindow(p, index, nextX, WIDTH))
-//                 continue;
-//
-//             int otherIndex = occupied[y][nextX];
-//
-//             // --------------------------------------------------
-//             // Empty cell
-//             // --------------------------------------------------
-//
-//             if (otherIndex == -1)
-//             {
-//                 // Don't jump over particles.
-//                 bool pathBlocked = false;
-//
-//                 for (int checkX = x + horizontalDirection; checkX != nextX; checkX += horizontalDirection)
-//                 {
-//                     if (occupied[y][checkX] != -1)
-//                     {
-//                         pathBlocked = true;
-//                         break;
-//                     }
-//                 }
-//
-//                 if (pathBlocked)
-//                     break;
-//
-//                 // Move particle.
-//                 occupied[y][x] = -1;
-//                 clearPixel(x, y);
-//
-//                 p.setPosition(nextX, y);
-//                 occupied[y][nextX] = index;
-//
-//                 setPixel(nextX, y, material);
-//
-//                 wakeNeighbors(x, y);
-//                 wakeNeighbors(nextX, y);
-//
-//                 scheduleParticle(index);
-//
-//                 return true;
-//             }
-//
-//             // Something is blocking this direction.
-//             // Don't jump through it.
-//             break;
-//         }
-//     }
-//
-//     return false;
-// }
-
 bool Simulation::checkBoundaryWindow(Particle& p, int index, int position, const int border)
 {
 
@@ -1105,4 +930,15 @@ bool Simulation::particleReaction(Particle& p, int index, int otherIndex)
         return true;
     }
     return false;
+}
+
+int Simulation::getParticleIndexAt(int x, int y) const
+{
+    if (x < 0 || x >= WIDTH ||
+        y < 0 || y >= HEIGHT)
+    {
+        return -1;
+    }
+
+    return occupied[y][x];
 }

@@ -22,6 +22,7 @@ add_executable(OpenGLProject
     src/Renderer.cpp
     src/Simulation.cpp
     src/Movements.cpp
+    src/Player.cpp
 )
 
 target_include_directories(OpenGLProject PRIVATE

@@ -87,15 +87,29 @@ inline const Material whiteBombMaterial{
 };
 
 inline const Material redBombMaterial{
-    MaterialType::RedBomb,         // type
+    MaterialType::RedBomb,      // type
     0.0f,                       // viscosity
     0.0f,                       // density
     0.0f,                       // spread
     false,                      // affectedByGravity
     0,                          // vertical diretion
     0.0f,                       // gravityValue
-    false,                       // movable
-    0.1f,                      // lifetime
+    false,                      // movable
+    0.1f,                       // lifetime
     1.0f, 0.0f, 0.0f, 1.0f,     // rgba
+    false                       // isfire
+};
+
+inline const Material bulletMaterial{
+    MaterialType::Bullet,      // type
+    0.0f,                       // viscosity
+    0.0f,                       // density
+    0.0f,                       // spread
+    false,                      // affectedByGravity
+    0,                          // vertical diretion
+    0.0f,                       // gravityValue
+    false,                      // movable
+    0.0f,                       // lifetime
+    1.0f, 1.0f, 1.0f, 1.0f,     // rgba
     false                       // isfire
 };

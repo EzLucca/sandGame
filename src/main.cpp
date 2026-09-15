@@ -16,6 +16,8 @@
 #include "Renderer.h"
 #include "Movements.h"
 #include "Simulation.h"
+#include "Player.h"
+
 
 std::string readFile(const char* path)
 {
@@ -45,6 +47,82 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
 
     if (mouse)
         mouse->scroll(yOffset);
+}
+struct Bullet
+{
+    bool active = false;
+
+    float x = 0.0f;
+    float y = 0.0f;
+
+    float velocityX = 0.0f;
+    float velocityY = 0.0f;
+};
+
+static Bullet bullet;
+
+void shootBullet(
+        Simulation& simulation,
+        float startX,
+        float startY,
+        float directionX,
+        float directionY)
+{
+    if (bullet.active)
+        return;
+
+    // Normalize direction
+    float length = std::sqrt(
+            directionX * directionX +
+            directionY * directionY
+            );
+
+    if (length == 0.0f)
+        return;
+
+    directionX /= length;
+    directionY /= length;
+
+    constexpr float speed = 500.0f;
+
+    bullet.active = true;
+
+    bullet.x = startX;
+    bullet.y = startY;
+
+    bullet.velocityX = directionX * speed;
+    bullet.velocityY = directionY * speed;
+}
+
+void updateBullet( Simulation& simulation, float deltaTime)
+{
+    if (!bullet.active)
+        return;
+
+    bullet.x += bullet.velocityX * deltaTime;
+    bullet.y += bullet.velocityY * deltaTime;
+
+    int x = static_cast<int>(bullet.x);
+    int y = static_cast<int>(bullet.y);
+
+    // Hit another particle
+    if (x < 0 || x >= Simulation::WIDTH ||
+            y < 0 || y >= Simulation::HEIGHT)
+    {
+        bullet.active = false;
+        return;
+    }
+
+    // Check if bullet hit a particle
+    int particleIndex = simulation.getParticleIndexAt(x, y);
+
+    if (particleIndex != -1)
+    {
+        simulation.removeParticle(particleIndex);
+
+        bullet.active = false;
+        return;
+    }
 }
 
 int main()
@@ -79,6 +157,8 @@ int main()
         glfwTerminate();
         return -1;
     }
+
+    Player player(window, Simulation::WIDTH / 2.0f, Simulation::HEIGHT / 2.0f, 10.0f);
 
     // ----- setting mouse -----
 
@@ -140,18 +220,24 @@ int main()
 
             if (glfwGetKey(window, GLFW_KEY_7) == GLFW_PRESS)
             {
-                Movements::launchParticle( simulation, gridX, gridY);
+                Movements::launchParticle( simulation, player.getX(), player.getY());
             }
+            if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
+            {
+                float dx = gridX - player.getX();
+                float dy = gridY - player.getY();
 
+                shootBullet( simulation, player.getX(), player.getY(), dx, dy);
+            }
             if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
                 simulation.setGravity(-simulation.getGravity());
 
             // ----- DEBUG MOVEMENTS -----
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
                 simulation.diagonalMoves = !simulation.diagonalMoves;
-            if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+            if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
                 simulation.horizontalMoves = !simulation.horizontalMoves;
-            if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+            if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
                 simulation.verticalMoves = !simulation.verticalMoves;
             // ----- DEBUG MOVEMENTS -----
 
@@ -171,12 +257,28 @@ int main()
             // ----- Simulation -----
 
             simulation.update(deltaTime);
+            updateBullet(simulation, deltaTime);
             Movements::updateLaunch( simulation, deltaTime);
             Movements::updateExplosion(simulation);
+            player.update(window, deltaTime, simulation);
             renderer.render(simulation.getPixelData());
+            player.draw(renderer);
+
+            // ----- Bullet draw -----
+            if (bullet.active)
+            {
+                renderer.drawCircle(
+                        static_cast<int>(bullet.x),
+                        static_cast<int>(bullet.y),
+                        2,
+                        1.0f,
+                        1.0f,
+                        1.0f
+                        );
+            }
 
             // ----- Brush preview -----
-            renderer.drawCircle( mouse.getX(), mouse.getY(), mouse.getBrushRadius(),
+            renderer.drawCircunference( mouse.getX(), mouse.getY(), mouse.getBrushRadius(),
                     1.0f, 1.0f, 1.0f);
 
             // ----- Lauch -----
@@ -247,3 +349,4 @@ int main()
     return 0;
 
 }
+

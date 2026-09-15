@@ -1,9 +1,9 @@
 #pragma once
 
-#include <glad/glad.h>
 
 #include <string>
 #include <vector>
+#include <glad/glad.h>
 
 class Renderer
 {
@@ -14,6 +14,14 @@ class Renderer
 
         void render( const std::vector<unsigned char>& pixelData);
         void drawCircle(int centerX, int centerY, int radius, float r, float g, float b);
+        void drawCircunference( int centerX, int centerY, int radius, float r, float g, float b);
+        void createTexture();
+        void createQuad();
+        void createShaders();
+        void createCircle();
+
+        std::string readFile(const char* path);
+        GLuint compileShader( GLenum type, const std::string& source);
 
     private:
 
@@ -31,13 +39,4 @@ class Renderer
         GLuint circleShaderProgram = 0;
         GLuint circleVAO = 0;
         GLuint circleVBO = 0;
-
-        void createTexture();
-        void createQuad();
-        void createShaders();
-        void createCircle();
-
-        std::string readFile(const char* path);
-
-        GLuint compileShader( GLenum type, const std::string& source);
 };

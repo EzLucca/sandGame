@@ -8,7 +8,8 @@ enum class MaterialType
     Fire,
     Smoke,
     WhiteBomb,
-    RedBomb
+    RedBomb,
+    Bullet
 };
 
 struct Material

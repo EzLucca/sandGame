@@ -364,6 +364,75 @@ void Renderer::drawCircle(int centerX, int centerY, int radius, float r, float g
     glBindVertexArray(0);
 }
 
+void Renderer::drawCircunference( int centerX, int centerY, int radius,
+    float r, float g, float b)
+{
+    constexpr int segments = 64;
+
+    std::vector<float> vertices;
+    vertices.reserve(segments * 2);
+
+    // Circle perimeter only
+    for (int i = 0; i < segments; ++i)
+    {
+        float angle =
+            2.0f * static_cast<float>(M_PI) *
+            static_cast<float>(i) /
+            static_cast<float>(segments);
+
+        float x =
+            static_cast<float>(centerX) +
+            std::cos(angle) * radius;
+
+        float y =
+            static_cast<float>(centerY) +
+            std::sin(angle) * radius;
+
+        vertices.push_back(x);
+        vertices.push_back(y);
+    }
+
+    glUseProgram(circleShaderProgram);
+
+    // Color
+    GLint colorLocation =
+        glGetUniformLocation(circleShaderProgram, "color");
+
+    glUniform3f(colorLocation, r, g, b);
+
+    // Screen dimensions
+    GLint screenSizeLocation =
+        glGetUniformLocation(circleShaderProgram, "screenSize");
+
+    glUniform2f(
+        screenSizeLocation,
+        static_cast<float>(width),
+        static_cast<float>(height)
+    );
+
+    // Upload vertices
+    glBindVertexArray(circleVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, circleVBO);
+
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        vertices.size() * sizeof(float),
+        vertices.data(),
+        GL_DYNAMIC_DRAW
+    );
+
+    // Draw circumference
+    glDrawArrays(
+        GL_LINE_LOOP,
+        0,
+        static_cast<GLsizei>(vertices.size() / 2)
+    );
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
 void Renderer::createCircle()
 {
     glGenVertexArrays(1, &circleVAO);

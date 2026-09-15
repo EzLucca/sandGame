@@ -79,30 +79,15 @@ namespace Movements
     }
 
 
-    bool isExplosionActive()
-    {
-        return explosion.active;
-    }
+    bool isExplosionActive() { return explosion.active; }
 
-    ExplosionStage getExplosionStage()
-    {
-        return explosion.stage;
-    }
+    ExplosionStage getExplosionStage() { return explosion.stage; }
 
-    int getExplosionX()
-    {
-        return explosion.x;
-    }
+    int getExplosionX() { return explosion.x; }
 
-    int getExplosionY()
-    {
-        return explosion.y;
-    }
+    int getExplosionY() { return explosion.y; }
 
-    int getExplosionRadius()
-    {
-        return explosion.radius;
-    }
+    int getExplosionRadius() { return explosion.radius; }
 
     struct Launch
     {
@@ -164,7 +149,7 @@ namespace Movements
         if (collision)
         {
             launch.active = false;
-            triggerExplosion( simulation, x, y, 50);
+            triggerExplosion( simulation, x, y, 30);
 
             return;
         }
@@ -173,23 +158,14 @@ namespace Movements
         if (launch.velocityY >= 0.0f)
         {
             launch.active = false;
-            triggerExplosion( simulation, x, y, 50);
+            triggerExplosion( simulation, x, y, 30);
         }
     }
 
-    bool isLaunchActive()
-    {
-        return launch.active;
-    }
+    bool isLaunchActive() { return launch.active; }
 
-    int getLaunchX()
-    {
-        return static_cast<int>(launch.x);
-    }
+    int getLaunchX() { return static_cast<int>(launch.x); }
 
-    int getLaunchY()
-    {
-        return static_cast<int>(launch.y);
-    }
+    int getLaunchY() { return static_cast<int>(launch.y); }
 }
 

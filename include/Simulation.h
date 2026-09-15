@@ -30,6 +30,7 @@ class Simulation
         const std::vector<unsigned char>& getPixelData() const { return pixelData; }
         float getGravity() const;
         int getParticleCount() const { return particleCount; }
+        int getParticleIndexAt(int x, int y) const;
         std::size_t getActiveParticleCount() const { return activeParticles.size(); }
         unsigned int fastRandom();
 
